@@ -1,5 +1,9 @@
 package pl.kowalecki.dietplannerrestapi.security.jwt;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,12 +16,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import pl.kowalecki.dietplannerrestapi.services.UserDetailsServiceImpl;
 
 import java.io.IOException;
 
 @Slf4j
+@Component
 public class AuthTokenFilter extends OncePerRequestFilter {
 
     @Autowired
@@ -30,6 +36,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         try{
+            if (SecurityContextHolder.getContext().getAuthentication() == null) {
             String jwt = parseJwt(request);
             if (jwt != null && jwtUtils.validateJwtToken(jwt)){
                 String userEmail = jwtUtils.getEmailFromJwtToken(jwt);
@@ -39,8 +46,31 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
-        }catch (Exception e){
-            log.error("Cannot set user authentication: {}", e);
+            }
+        } catch (ExpiredJwtException e) {
+            log.error("JWT token is expired: {}", e.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error: JWT token is expired");
+            return;
+        } catch (UnsupportedJwtException e) {
+            log.error("JWT token is unsupported: {}", e.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error: JWT token is unsupported");
+            return;
+        } catch (MalformedJwtException e) {
+            log.error("Invalid JWT token: {}", e.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error: Invalid JWT token");
+            return;
+        } catch (SignatureException e) {
+            log.error("JWT signature validation failed: {}", e.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error: JWT signature validation failed");
+            return;
+        } catch (IllegalArgumentException e) {
+            log.error("JWT claims string is empty: {}", e.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error: JWT claims string is empty");
+            return;
+        } catch (Exception e) {
+            log.error("Cannot set user authentication: {}", e.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error: Unauthorized");
+            return;
         }
         filterChain.doFilter(request, response);
     }
