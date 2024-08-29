@@ -16,6 +16,7 @@ import pl.kowalecki.dietplannerrestapi.repository.IngredientNamesRepository;
 import pl.kowalecki.dietplannerrestapi.repository.IngredientRepository;
 import pl.kowalecki.dietplannerrestapi.repository.MealRepository;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -52,12 +53,12 @@ public class MealServiceImpl implements MealService{
 
     @Override
     @Transactional
-    public void addMeal(AddMealRequestDTO newMeal) {
-
+    public void addMeal(Integer userId, AddMealRequestDTO mealRequest) {
+        //TODO ADD MEAL TO DB
+//        Meal newMeal = new Meal();
 //        if (newMeal.getIngredients() == null) {
 //            newMeal.setIngredients(new ArrayList<>());
 //        }
-//        Optional<User> userOptional = userService.findById(Integer.valueOf(userId));
 //
 //        newMeal.setAdditionDate(LocalDateTime.now());
 //        Meal savedMeal = mealRepository.save(newMeal);
@@ -66,6 +67,7 @@ public class MealServiceImpl implements MealService{
 //            ingredient.setMeal(savedMeal);
 //            ingredientRepository.save(ingredient);
 //        }
+
     }
 
     public List<Ingredient> getMealIngredientsByMealId(Long mealId){

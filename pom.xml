@@ -59,21 +59,17 @@
             <artifactId>hibernate-core</artifactId>
             <version>${hibernate.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.20</version>
             <scope>provided</scope>
         </dependency>
-
-
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.5.14</version>
         </dependency>
-
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
@@ -100,22 +96,11 @@
             <version>0.11.5</version>
             <scope>runtime</scope>
         </dependency>
-
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
             <version>0.11.5</version>
             <scope>runtime</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.freemarker</groupId>
-            <artifactId>freemarker-gae</artifactId>
-            <version>2.3.32</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-freemarker</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.poi</groupId>
