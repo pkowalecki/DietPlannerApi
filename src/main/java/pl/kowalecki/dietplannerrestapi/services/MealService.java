@@ -12,6 +12,6 @@ public interface MealService {
     List<Meal> getAllMeals();
     Meal getMealById(Long id);
     boolean deleteMealById(Long id);
-    void addMeal(AddMealRequestDTO newMeal);
+    void addMeal(Integer userId, AddMealRequestDTO newMeal);
     List<Meal> getMealByUserId(Long userId);
 }
