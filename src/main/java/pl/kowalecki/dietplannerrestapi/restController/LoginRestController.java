@@ -44,6 +44,10 @@ public class LoginRestController {
 
             Map<String, LoginResponseDTO> userDetailsResponse = new HashMap<>();
             userDetailsResponse.put("user", LoginResponseDTO.builder()
+                    .id(userDetails.getId())
+                    .surname(userDetails.getSurname())
+                    .nickName(userDetails.getNickName())
+                    .name(userDetails.getName())
                     .email(userDetails.getEmail())
                     .roles(userDetails.getAuthorities().stream()
                             .map(GrantedAuthority::getAuthority)
