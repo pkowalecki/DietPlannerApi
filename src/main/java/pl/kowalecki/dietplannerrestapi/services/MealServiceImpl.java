@@ -6,8 +6,11 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.kowalecki.dietplannerrestapi.IngredientsListHelper;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.AddMealRequestDTO;
+import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientToBuyDTO;
 import pl.kowalecki.dietplannerrestapi.model.Meal;
+import pl.kowalecki.dietplannerrestapi.model.User;
+import pl.kowalecki.dietplannerrestapi.model.enums.MealType;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.Ingredient;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientName;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientAmount.IngredientUnit;
@@ -15,9 +18,11 @@ import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement.Me
 import pl.kowalecki.dietplannerrestapi.repository.IngredientNamesRepository;
 import pl.kowalecki.dietplannerrestapi.repository.IngredientRepository;
 import pl.kowalecki.dietplannerrestapi.repository.MealRepository;
+import pl.kowalecki.dietplannerrestapi.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -27,6 +32,7 @@ public class MealServiceImpl implements MealService{
     private final IngredientRepository ingredientRepository;
     private final UserServiceImpl userService;
     private final IngredientNamesRepository ingredientNamesRepository;
+    private final UserRepository userRepository;
 
     @Override
     public List<Meal> getAllMeals(){
@@ -53,21 +59,45 @@ public class MealServiceImpl implements MealService{
 
     @Override
     @Transactional
-    public void addMeal(Integer userId, AddMealRequestDTO mealRequest) {
-        //TODO ADD MEAL TO DB
-//        Meal newMeal = new Meal();
-//        if (newMeal.getIngredients() == null) {
-//            newMeal.setIngredients(new ArrayList<>());
-//        }
-//
-//        newMeal.setAdditionDate(LocalDateTime.now());
-//        Meal savedMeal = mealRepository.save(newMeal);
-//
-//        for (Ingredient ingredient : newMeal.getIngredients()) {
-//            ingredient.setMeal(savedMeal);
-//            ingredientRepository.save(ingredient);
-//        }
+    public void addMeal(Integer userId, AddMealRequestDTO mealRequest) throws Exception{
+        User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
+            Meal meal = new Meal();
+            if (mealRequest.getIngredients() == null) {
+                meal.setIngredients(new ArrayList<>());
+            }
+            meal.setName(mealRequest.getMealName());
+            meal.setDescription(mealRequest.getDescription());
+            meal.setRecipe(mealRequest.getRecipe());
+            meal.setNotes(mealRequest.getNotes());
+            meal.setAdditionDate(LocalDateTime.now());
+            meal.setDeleted(false);
+            mealRepository.save(meal);
 
+            List<MealType> mealTypes = mealRequest.getMealTypes().stream()
+                    .map(MealType::getByShortName)
+                    .collect(Collectors.toList());
+            meal.setMealTypes(mealTypes);
+
+            List<Ingredient> ingredients = mealRequest.getIngredients().stream()
+                    .map(ingredientDTO -> {
+                        Ingredient ingredient = new Ingredient();
+                        ingredient.setIngredientAmount(ingredientDTO.getIngredientAmount());
+                        ingredient.setIngredientUnit(IngredientUnit.getByShortName(ingredientDTO.getIngredientUnit()));
+                        ingredient.setMeasurementValue(ingredientDTO.getMeasurementValue());
+                        ingredient.setMeasurementType(MeasurementType.getMeasurementTypeByName(ingredientDTO.getMeasurementType()));
+
+                        IngredientName ingredientName = ingredientNamesRepository.findById(ingredientDTO.getIngredientNameId())
+                                .orElseThrow(() -> new EntityNotFoundException("Ingredient not found with id: " + ingredientDTO.getIngredientNameId()));
+                        ingredient.setIngredientNameId(ingredientName);
+                        ingredient.setMeal(meal);
+                        return ingredient;
+                    }).collect(Collectors.toList());
+            meal.setIngredients(ingredients);
+
+            user.getMealList().add(meal);
+
+            mealRepository.save(meal);
+            userRepository.save(user);
     }
 
     public List<Ingredient> getMealIngredientsByMealId(Long mealId){
@@ -85,7 +115,7 @@ public class MealServiceImpl implements MealService{
             return map;
         }
         map.put(meal.getMealTypes().stream()
-                .anyMatch(type -> "SNACK".equals(type.getMealTypenEn())), meal.getIngredients());
+                .anyMatch(type -> "SNACK".equals(type.getMealTypeEn())), meal.getIngredients());
         return map;
     }
 
