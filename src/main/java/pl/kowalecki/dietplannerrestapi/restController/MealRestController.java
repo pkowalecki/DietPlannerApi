@@ -37,17 +37,31 @@ public class MealRestController {
     private final AuthJwtUtils authJwtUtils;
     private final MealServiceImpl mealServiceImpl;
 
-    @GetMapping( "/allMeal")
-    public ResponseEntity<List<Meal>> getListMeal(){
-        if (!mealServiceImpl.getAllMeals().isEmpty()) return new ResponseEntity<>(mealServiceImpl.getAllMeals(), HttpStatus.OK);
-        else return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    @GetMapping("/allMeal")
+    public ResponseEntity<ResponseDTO> getListMeal() {
+        List<Meal> mealList = mealServiceImpl.getAllMeals();
+        if (!mealList.isEmpty()) {
+            Map<String, List<Meal>> respoData = new HashMap<>();
+            respoData.put("mealList", mealList);
+            ResponseDTO responseDTO = ResponseDTO.builder()
+                    .status(ResponseDTO.ResponseStatus.OK)
+                    .data(respoData)
+                    .build();
+            return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(ResponseDTO.builder()
+                .status(ResponseDTO.ResponseStatus.ERROR)
+                .message("Meals not found")
+                .build(), HttpStatus.OK);
     }
 
     @GetMapping(value = "/getMeal/{id}")
-    public ResponseEntity<Meal> getMealById(@PathVariable Long id){
-        if (mealServiceImpl.getMealById(id) != null) return new ResponseEntity<>(mealServiceImpl.getMealById(id), HttpStatus.OK);
+    public ResponseEntity<Meal> getMealById(@PathVariable Long id) {
+        if (mealServiceImpl.getMealById(id) != null)
+            return new ResponseEntity<>(mealServiceImpl.getMealById(id), HttpStatus.OK);
         else return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
     @GetMapping(value = "/deleteMeal/{id}")
     public ResponseEntity<?> deleteMealById(@PathVariable Long id) {
         if (mealServiceImpl.getMealById(id) != null)
@@ -55,23 +69,23 @@ public class MealRestController {
         else return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PostMapping( "/addMeal")
-    public ResponseEntity<ResponseDTO> addMeal(@RequestBody AddMealRequestDTO newMeal){
-        System.out.println("niu mil: " + newMeal);
+    @PostMapping("/addMeal")
+    public ResponseEntity<ResponseDTO> addMeal(@RequestBody AddMealRequestDTO newMeal) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         if (authentication != null && authentication.isAuthenticated()) {
             Object principal = authentication.getPrincipal();
-
-
-            if (principal instanceof UserDetailsImpl) {
-                UserDetailsImpl userDetails = (UserDetailsImpl) principal;
-                String userEmail = userDetails.getEmail();
-                String userName = userDetails.getUsername(); // Retrieve other details as needed
-                // Perform your business logic with the user details
-                System.out.println("User email: " + userEmail);
-                System.out.println("User name: " + userName);
-                mealServiceImpl.addMeal(userDetails.getId(), newMeal);
+            if (principal instanceof UserDetailsImpl userDetails) {
+                try {
+                    mealServiceImpl.addMeal(userDetails.getId(), newMeal);
+                } catch (Exception e) {
+                    ResponseDTO responseDTO = ResponseDTO.builder()
+                            .status(ResponseDTO.ResponseStatus.ERROR)
+                            .message("Meal not created")
+                            .build();
+                    log.error("AddMeal: {}", e.getMessage());
+                    e.printStackTrace();
+                    return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+                }
             }
         }
 
@@ -81,6 +95,7 @@ public class MealRestController {
                 .build();
         return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }
+
     @PostMapping("/generateFoodBoard")
     public ResponseEntity<List<IngredientToBuyDTO>> generateFoodBoard(@RequestParam("ids") String ids, @RequestParam("multiplier") Double multiplier) {
         System.out.println("ids: " + ids);
@@ -98,29 +113,31 @@ public class MealRestController {
 //    }
 
     @GetMapping(value = "/getMealIngredientsList/{id}")
-    public ResponseEntity<List<Ingredient>> getMealIngredientsByMealId(@PathVariable Long id){
-        if (mealServiceImpl.getMealIngredientsByMealId(id) != null) return new ResponseEntity<>(mealServiceImpl.getMealIngredientsByMealId(id), HttpStatus.OK);
+    public ResponseEntity<List<Ingredient>> getMealIngredientsByMealId(@PathVariable Long id) {
+        if (mealServiceImpl.getMealIngredientsByMealId(id) != null)
+            return new ResponseEntity<>(mealServiceImpl.getMealIngredientsByMealId(id), HttpStatus.OK);
         else return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping(value = "/getIngredientMap")
-    public ResponseEntity<Map<IngredientUnit,List<String>>> getListIngredientUnit(){
+    public ResponseEntity<Map<IngredientUnit, List<String>>> getListIngredientUnit() {
         return new ResponseEntity<>(mealServiceImpl.getIngredientUnitMap(), HttpStatus.OK);
     }
+
     @GetMapping(value = "/getMeasurementMap")
-    public ResponseEntity<Map<MeasurementType, List<String>>> getListMeasurementName(){
+    public ResponseEntity<Map<MeasurementType, List<String>>> getListMeasurementName() {
         return new ResponseEntity<>(mealServiceImpl.getMeasurementTypeMap(), HttpStatus.OK);
     }
 
     @GetMapping(value = "/getMealsByUserId/{id}")
-    public ResponseEntity<List<Meal>> getMealsByUserId(@PathVariable Long id){
+    public ResponseEntity<List<Meal>> getMealsByUserId(@PathVariable Long id) {
         if (id != null) return new ResponseEntity<>(mealServiceImpl.getMealByUserId(id), HttpStatus.OK);
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @GetMapping(value = "/getMealStarterPack")
-    public ResponseEntity<ResponseDTO> getMealStarterPack(){
-        try{
+    public ResponseEntity<ResponseDTO> getMealStarterPack() {
+        try {
             Map<String, List<?>> responseData = new HashMap<>();
 
             List<IngredientName> ingredientNameList = mealServiceImpl.getMealIngredientNames();
@@ -139,14 +156,14 @@ public class MealRestController {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(response);
 
-        }catch (Exception e){
+        } catch (Exception e) {
             return getResponseError(e);
         }
 
     }
 
     @GetMapping(value = "/ingredients")
-    public ResponseEntity<ResponseDTO> getIngredients(){
+    public ResponseEntity<ResponseDTO> getIngredients() {
         try {
             Map<String, List<IngredientName>> responseData = new HashMap<>();
             List<IngredientName> ingredientNames = mealServiceImpl.getMealIngredientNames();
@@ -158,7 +175,7 @@ public class MealRestController {
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(response);
-        }catch (Exception e) {
+        } catch (Exception e) {
             return getResponseError(e);
         }
     }

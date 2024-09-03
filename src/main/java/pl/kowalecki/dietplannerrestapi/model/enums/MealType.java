@@ -18,12 +18,12 @@ public enum MealType {
     ;
 
     private String mealTypePl;
-    private String mealTypenEn;
+    private String mealTypeEn;
 
 
     public static MealType getByShortName(String shortName) {
-        for (MealType ingredientUnit : values()) {
-            if (ingredientUnit.getMealTypePl().equals(shortName)) return ingredientUnit;
+        for (MealType mealType : values()) {
+            if (mealType.getMealTypePl().equals(shortName)) return mealType;
         }
         return null;
     }
