@@ -1,7 +1,5 @@
 package pl.kowalecki.dietplannerrestapi.restController;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -9,8 +7,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import pl.kowalecki.dietplannerrestapi.model.DTO.FoodBoardPageDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.ResponseDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.AddMealRequestDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientToBuyDTO;
@@ -20,12 +18,12 @@ import pl.kowalecki.dietplannerrestapi.model.ingredient.Ingredient;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientName;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientAmount.IngredientUnit;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement.MeasurementType;
+import pl.kowalecki.dietplannerrestapi.repository.MealRepository;
 import pl.kowalecki.dietplannerrestapi.security.jwt.AuthJwtUtils;
 import pl.kowalecki.dietplannerrestapi.services.MealServiceImpl;
 import pl.kowalecki.dietplannerrestapi.services.UserDetailsImpl;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:3000", maxAge = 3600)
 @RequestMapping("/api/auth/meal")
@@ -36,6 +34,7 @@ public class MealRestController {
 
     private final AuthJwtUtils authJwtUtils;
     private final MealServiceImpl mealServiceImpl;
+    private final MealRepository mealRepository;
 
     @GetMapping("/allMeal")
     public ResponseEntity<ResponseDTO> getListMeal() {
@@ -97,12 +96,29 @@ public class MealRestController {
     }
 
     @PostMapping("/generateFoodBoard")
-    public ResponseEntity<List<IngredientToBuyDTO>> generateFoodBoard(@RequestParam("ids") String ids, @RequestParam("multiplier") Double multiplier) {
-        System.out.println("ids: " + ids);
-        List<Long> idsList = Arrays.stream(ids.split(","))
-                .map(Long::parseLong)
-                .collect(Collectors.toList());
-        return new ResponseEntity<>(mealServiceImpl.getMealIngredientsFinalList(idsList, multiplier), HttpStatus.OK);
+    public ResponseEntity<ResponseDTO> generateFoodBoard(@RequestBody FoodBoardPageDTO foodBoardPageDTO) {
+        Map<String, List<?>> responseData = new HashMap<>();
+        try{
+            List<Meal> mealList = mealRepository.findMealsByMealIdIn(foodBoardPageDTO.getMealIds());
+            List<IngredientToBuyDTO> ingredientToBuyDTOList = mealServiceImpl.getMealIngredientsFinalList(foodBoardPageDTO.getMealIds(), foodBoardPageDTO.getMultiplier());
+            responseData.put("mealList", mealList);
+            responseData.put("ingredientToBuyDTOList", ingredientToBuyDTOList);
+
+        }catch (Exception e){
+            ResponseDTO responseDTO = ResponseDTO.builder()
+                    .status(ResponseDTO.ResponseStatus.ERROR)
+                    .message("Meal not created")
+                    .build();
+            log.error("generateFoodBoard: {}", e.getMessage());
+            e.printStackTrace();
+            return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+        }
+
+        ResponseDTO responseDTO = ResponseDTO.builder()
+                .status(ResponseDTO.ResponseStatus.OK)
+                .data(responseData)
+                .build();
+        return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
 //    @PostMapping("/generateFoodRecipe")
 //    public ResponseEntity<List<FoodDTO>> generateFoodRecipe(@RequestParam("ids") String ids, @RequestParam("multiplier") Double multiplier) {
