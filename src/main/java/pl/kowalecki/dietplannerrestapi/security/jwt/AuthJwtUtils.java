@@ -28,6 +28,12 @@ public class AuthJwtUtils {
     @Value("${dietplanner.app.jwtCookieName}")
     private String jwtCookie;
 
+    @Value("${dietplanner.app.jwtRefreshExpiration}")
+    private int jwtRefreshExpiration;
+
+    @Value("${dietplanner.app.jwtRefreshCookieName}")
+    private String jwtRefCookie;
+
     private Key key() {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
@@ -46,13 +52,43 @@ public class AuthJwtUtils {
                 .compact();
     }
 
+    private String generateRefreshTokenFromEmail(String email) {
+        return Jwts.builder()
+                .setSubject(email)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date((new Date()).getTime() + jwtRefreshExpiration))
+                .signWith(key(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
 
     public ResponseCookie generateJwtCookie(UserDetailsImpl userPrincipal) {
         String jwt = generateTokenFromEmail(userPrincipal.getEmail());
         return ResponseCookie.from(jwtCookie, jwt)
                 .path("/")
-                .maxAge(30 * 60)
+                .maxAge(jwtExpiration/1000)
                 .httpOnly(true)
+//                .secure(true) // HTTPS
+                .build();
+    }
+
+    public String getEmailFromJwtToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+    }
+
+
+    public ResponseCookie getRefreshTokenCookie(UserDetailsImpl userPrincipal) {
+        String refreshToken = generateRefreshTokenFromEmail(userPrincipal.getEmail());
+        return ResponseCookie.from(jwtRefCookie, refreshToken)
+                .path("/")
+                .maxAge(jwtRefreshExpiration / 1000)
+                .httpOnly(true)
+//                .secure(true) // HTTPS
                 .build();
     }
 
@@ -64,13 +100,12 @@ public class AuthJwtUtils {
                 .build();
     }
 
-    public String getEmailFromJwtToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key())
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+    public ResponseCookie getCleanRefreshToken() {
+        return ResponseCookie
+                .from(jwtRefCookie, null)
+                .maxAge(0)
+                .path("/")
+                .build();
     }
 
     public boolean validateJwtToken(String authToken) {
