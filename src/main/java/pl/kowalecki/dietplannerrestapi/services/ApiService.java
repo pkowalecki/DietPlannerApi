@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import pl.kowalecki.dietplannerrestapi.model.DTO.ResponseDTO;
+import pl.kowalecki.dietplannerrestapi.model.DTO.ResponseBodyDTO;
 
 import java.util.Map;
 
@@ -22,23 +22,16 @@ public class ApiService implements IApiService {
     private HttpServletResponse response;
 
     @Override
-    public ResponseEntity<ResponseDTO> returnResponseData(ResponseDTO.ResponseStatus responseStatus, String s, Map<String, ?> data, HttpStatus httpStatus) {
-        ResponseDTO responseDTO = new ResponseDTO();
-        switch (responseStatus) {
-            case OK:
-                responseDTO = ResponseDTO.builder().build();
-                break;
-            case BADDATA:
-                responseDTO = ResponseDTO.builder().build();
-                break;
-            case UNAUTHORIZED:
-                responseDTO = ResponseDTO.builder().build();
-                break;
-            case ERROR:
-                responseDTO = ResponseDTO.builder().build();
-                break;
-        }
+    public ResponseEntity<ResponseBodyDTO> returnResponseData(ResponseBodyDTO.ResponseStatus responseStatus, String responseMessage, Map<String, ?> data, HttpStatus httpStatus) {
+        new ResponseBodyDTO();
+        ResponseBodyDTO responseBodyDTO = switch (responseStatus) {
+            case OK, BAD_DATA, UNAUTHORIZED, ERROR -> ResponseBodyDTO.builder()
+                    .status(responseStatus)
+                    .message(responseMessage)
+                    .data(data)
+                    .build();
+        };
 
-        return new ResponseEntity<>(responseDTO, httpStatus);
+        return new ResponseEntity<>(responseBodyDTO, httpStatus);
     }
 }

@@ -11,7 +11,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import pl.kowalecki.dietplannerrestapi.model.DTO.ResponseDTO;
+import pl.kowalecki.dietplannerrestapi.model.DTO.ResponseBodyDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.User.LoginRequestDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.User.LoginResponseDTO;
 import pl.kowalecki.dietplannerrestapi.security.jwt.AuthJwtUtils;
@@ -55,13 +55,13 @@ public class LoginRestController {
                     .build());
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-                    .body(new ResponseDTO(ResponseDTO.ResponseStatus.OK, "Login successful", userDetailsResponse));
+                    .body(new ResponseBodyDTO(ResponseBodyDTO.ResponseStatus.OK, "Login successful", userDetailsResponse));
         } catch (AuthenticationException e) {
             log.error("LoginRestController error: Email: {}", loginRequestDto.getEmail());
             log.error(e.getMessage());
             Map<String, String> errors = new HashMap<>();
             errors.put("error", "Invalid email or password");
-            return new ResponseEntity<>(new ResponseDTO(ResponseDTO.ResponseStatus.ERROR, "Authentication error", errors), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new ResponseBodyDTO(ResponseBodyDTO.ResponseStatus.ERROR, "Authentication error", errors), HttpStatus.UNAUTHORIZED);
         }
     }
 
@@ -69,6 +69,6 @@ public class LoginRestController {
     public ResponseEntity<?> logout(HttpServletResponse response) {
         ResponseCookie cleanCookie = jwtUtils.getCleanJwtCookie();
         response.addHeader(HttpHeaders.SET_COOKIE, cleanCookie.toString());
-        return ResponseEntity.ok().body(new ResponseDTO(ResponseDTO.ResponseStatus.OK));
+        return ResponseEntity.ok().body(new ResponseBodyDTO(ResponseBodyDTO.ResponseStatus.OK));
     }
 }

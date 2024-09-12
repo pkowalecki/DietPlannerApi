@@ -9,7 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
-import pl.kowalecki.dietplannerrestapi.model.DTO.ResponseDTO;
+import pl.kowalecki.dietplannerrestapi.model.DTO.ResponseBodyDTO;
 
 
 import java.io.IOException;
@@ -24,14 +24,14 @@ public class ApiAuthEntryPoint implements AuthenticationEntryPoint {
         log.error("Unauthorized " + authException.getMessage());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        ResponseDTO responseDTO = ResponseDTO.builder()
-                .status(ResponseDTO.ResponseStatus.UNAUTHORIZED)
+        ResponseBodyDTO responseBodyDTO = ResponseBodyDTO.builder()
+                .status(ResponseBodyDTO.ResponseStatus.UNAUTHORIZED)
                 .message("Unauthorized: " + authException.getMessage())
                 .data(Collections.singletonMap("path", request.getServletPath()))
                 .build();
 
-        log.error("API Exception body: " + responseDTO.toString());
+        log.error("API Exception body: " + responseBodyDTO.toString());
         ObjectMapper mapper = new ObjectMapper();
-        mapper.writeValue(response.getOutputStream(), responseDTO);
+        mapper.writeValue(response.getOutputStream(), responseBodyDTO);
     }
 }

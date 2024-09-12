@@ -9,7 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import pl.kowalecki.dietplannerrestapi.model.DTO.FoodBoardPageDTO;
-import pl.kowalecki.dietplannerrestapi.model.DTO.ResponseDTO;
+import pl.kowalecki.dietplannerrestapi.model.DTO.ResponseBodyDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.AddMealRequestDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientToBuyDTO;
 import pl.kowalecki.dietplannerrestapi.model.Meal;
@@ -20,6 +20,7 @@ import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientAmount.Ingredi
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement.MeasurementType;
 import pl.kowalecki.dietplannerrestapi.repository.MealRepository;
 import pl.kowalecki.dietplannerrestapi.security.jwt.AuthJwtUtils;
+import pl.kowalecki.dietplannerrestapi.services.IApiService;
 import pl.kowalecki.dietplannerrestapi.services.MealServiceImpl;
 import pl.kowalecki.dietplannerrestapi.services.UserDetailsImpl;
 
@@ -35,21 +36,22 @@ public class MealRestController {
     private final AuthJwtUtils authJwtUtils;
     private final MealServiceImpl mealServiceImpl;
     private final MealRepository mealRepository;
+    private final IApiService apiService;
 
     @GetMapping("/allMeal")
-    public ResponseEntity<ResponseDTO> getListMeal() {
+    public ResponseEntity<ResponseBodyDTO> getListMeal() {
         List<Meal> mealList = mealServiceImpl.getAllMeals();
         if (!mealList.isEmpty()) {
             Map<String, List<Meal>> respoData = new HashMap<>();
             respoData.put("mealList", mealList);
-            ResponseDTO responseDTO = ResponseDTO.builder()
-                    .status(ResponseDTO.ResponseStatus.OK)
+            ResponseBodyDTO responseBodyDTO = ResponseBodyDTO.builder()
+                    .status(ResponseBodyDTO.ResponseStatus.OK)
                     .data(respoData)
                     .build();
-            return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+            return new ResponseEntity<>(responseBodyDTO, HttpStatus.OK);
         }
-        return new ResponseEntity<>(ResponseDTO.builder()
-                .status(ResponseDTO.ResponseStatus.ERROR)
+        return new ResponseEntity<>(ResponseBodyDTO.builder()
+                .status(ResponseBodyDTO.ResponseStatus.ERROR)
                 .message("Meals not found")
                 .build(), HttpStatus.OK);
     }
@@ -69,7 +71,7 @@ public class MealRestController {
     }
 
     @PostMapping("/addMeal")
-    public ResponseEntity<ResponseDTO> addMeal(@RequestBody AddMealRequestDTO newMeal) {
+    public ResponseEntity<ResponseBodyDTO> addMeal(@RequestBody AddMealRequestDTO newMeal) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             Object principal = authentication.getPrincipal();
@@ -77,26 +79,26 @@ public class MealRestController {
                 try {
                     mealServiceImpl.addMeal(userDetails.getId(), newMeal);
                 } catch (Exception e) {
-                    ResponseDTO responseDTO = ResponseDTO.builder()
-                            .status(ResponseDTO.ResponseStatus.ERROR)
+                    ResponseBodyDTO responseBodyDTO = ResponseBodyDTO.builder()
+                            .status(ResponseBodyDTO.ResponseStatus.ERROR)
                             .message("Meal not created")
                             .build();
                     log.error("AddMeal: {}", e.getMessage());
                     e.printStackTrace();
-                    return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+                    return new ResponseEntity<>(responseBodyDTO, HttpStatus.OK);
                 }
             }
         }
 
-        ResponseDTO responseDTO = ResponseDTO.builder()
-                .status(ResponseDTO.ResponseStatus.OK)
+        ResponseBodyDTO responseBodyDTO = ResponseBodyDTO.builder()
+                .status(ResponseBodyDTO.ResponseStatus.OK)
                 .message("Meal created")
                 .build();
-        return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
+        return new ResponseEntity<>(responseBodyDTO, HttpStatus.CREATED);
     }
 
     @PostMapping("/generateFoodBoard")
-    public ResponseEntity<ResponseDTO> generateFoodBoard(@RequestBody FoodBoardPageDTO foodBoardPageDTO) {
+    public ResponseEntity<ResponseBodyDTO> generateFoodBoard(@RequestBody FoodBoardPageDTO foodBoardPageDTO) {
         Map<String, List<?>> responseData = new HashMap<>();
         try{
             List<Meal> mealList = mealRepository.findMealsByMealIdIn(foodBoardPageDTO.getMealIds());
@@ -105,20 +107,20 @@ public class MealRestController {
             responseData.put("ingredientToBuyDTOList", ingredientToBuyDTOList);
 
         }catch (Exception e){
-            ResponseDTO responseDTO = ResponseDTO.builder()
-                    .status(ResponseDTO.ResponseStatus.ERROR)
+            ResponseBodyDTO responseBodyDTO = ResponseBodyDTO.builder()
+                    .status(ResponseBodyDTO.ResponseStatus.ERROR)
                     .message("Meal not created")
                     .build();
             log.error("generateFoodBoard: {}", e.getMessage());
             e.printStackTrace();
-            return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+            return new ResponseEntity<>(responseBodyDTO, HttpStatus.OK);
         }
 
-        ResponseDTO responseDTO = ResponseDTO.builder()
-                .status(ResponseDTO.ResponseStatus.OK)
+        ResponseBodyDTO responseBodyDTO = ResponseBodyDTO.builder()
+                .status(ResponseBodyDTO.ResponseStatus.OK)
                 .data(responseData)
                 .build();
-        return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+        return new ResponseEntity<>(responseBodyDTO, HttpStatus.OK);
     }
 //    @PostMapping("/generateFoodRecipe")
 //    public ResponseEntity<List<FoodDTO>> generateFoodRecipe(@RequestParam("ids") String ids, @RequestParam("multiplier") Double multiplier) {
@@ -151,8 +153,8 @@ public class MealRestController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping(value = "/getMealStarterPack")
-    public ResponseEntity<ResponseDTO> getMealStarterPack() {
+    @GetMapping(value = "/getMealStarterPack", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResponseBodyDTO> getMealStarterPack() {
         try {
             Map<String, List<?>> responseData = new HashMap<>();
 
@@ -164,12 +166,11 @@ public class MealRestController {
             responseData.put("ingredientUnits", ingredientUnitList);
             List<MeasurementType> measurementTypeList = Arrays.asList(MeasurementType.values());
             responseData.put("measurementTypes", measurementTypeList);
-            ResponseDTO response = ResponseDTO.builder()
-                    .status(ResponseDTO.ResponseStatus.OK)
+            ResponseBodyDTO response = ResponseBodyDTO.builder()
+                    .status(ResponseBodyDTO.ResponseStatus.OK)
                     .data(responseData)
                     .build();
             return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_JSON)
                     .body(response);
 
         } catch (Exception e) {
@@ -178,14 +179,14 @@ public class MealRestController {
 
     }
 
-    @GetMapping(value = "/ingredients")
-    public ResponseEntity<ResponseDTO> getIngredients() {
+    @GetMapping(value = "/ingredients", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResponseBodyDTO> getIngredients() {
         try {
             Map<String, List<IngredientName>> responseData = new HashMap<>();
             List<IngredientName> ingredientNames = mealServiceImpl.getMealIngredientNames();
             responseData.put("ingredients", ingredientNames);
-            ResponseDTO response = ResponseDTO.builder()
-                    .status(ResponseDTO.ResponseStatus.OK)
+            ResponseBodyDTO response = ResponseBodyDTO.builder()
+                    .status(ResponseBodyDTO.ResponseStatus.OK)
                     .data(responseData)
                     .build();
             return ResponseEntity.ok()
@@ -196,14 +197,35 @@ public class MealRestController {
         }
     }
 
-    private ResponseEntity<ResponseDTO> getResponseError(Exception e) {
+    private ResponseEntity<ResponseBodyDTO> getResponseError(Exception e) {
         log.error("Error retrieving data", e);
-        ResponseDTO errorResponse = ResponseDTO.builder()
-                .status(ResponseDTO.ResponseStatus.ERROR)
+        ResponseBodyDTO errorResponse = ResponseBodyDTO.builder()
+                .status(ResponseBodyDTO.ResponseStatus.ERROR)
                 .data(Collections.singletonMap("error", "An error occurred"))
                 .build();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(errorResponse);
     }
+
+    @PostMapping(value = "/getMealNamesById")
+    public ResponseEntity<ResponseBodyDTO> getMealNamesById(@RequestBody List<Long> mealIds) {
+        Map<String, List<String>> responseData = new HashMap<>();
+        try {
+            List<String> mealNames = mealServiceImpl.getMealNamesByIdList(mealIds);
+            if (!mealNames.isEmpty()) {
+                responseData.put("mealNames", mealNames);
+                ResponseBodyDTO responseBodyDTO = ResponseBodyDTO.builder()
+                        .status(ResponseBodyDTO.ResponseStatus.OK)
+                        .data(responseData)
+                        .build();
+                return ResponseEntity.ok().body(responseBodyDTO);
+            }
+            return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.OK, "No data", responseData, HttpStatus.OK);
+        }
+        catch (Exception e) {
+            return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.ERROR, "No data", responseData, HttpStatus.OK);
+        }
+    }
+
 }
