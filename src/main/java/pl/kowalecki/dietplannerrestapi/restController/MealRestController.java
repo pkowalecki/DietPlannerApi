@@ -1,11 +1,7 @@
 package pl.kowalecki.dietplannerrestapi.restController;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.xwpf.usermodel.*;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.*;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import pl.kowalecki.dietplannerrestapi.model.DTO.FoodBoardPageDTO;
-import pl.kowalecki.dietplannerrestapi.model.DTO.ResponseDTO;
+import pl.kowalecki.dietplannerrestapi.model.DTO.ResponseBodyDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.AddMealRequestDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientToBuyDTO;
 import pl.kowalecki.dietplannerrestapi.model.Meal;
@@ -24,12 +20,10 @@ import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientAmount.Ingredi
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement.MeasurementType;
 import pl.kowalecki.dietplannerrestapi.repository.MealRepository;
 import pl.kowalecki.dietplannerrestapi.security.jwt.AuthJwtUtils;
+import pl.kowalecki.dietplannerrestapi.services.IApiService;
 import pl.kowalecki.dietplannerrestapi.services.MealServiceImpl;
 import pl.kowalecki.dietplannerrestapi.services.UserDetailsImpl;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.math.BigInteger;
 import java.util.*;
 
 @CrossOrigin(origins = "http://localhost:3000", maxAge = 3600)
@@ -42,21 +36,22 @@ public class MealRestController {
     private final AuthJwtUtils authJwtUtils;
     private final MealServiceImpl mealServiceImpl;
     private final MealRepository mealRepository;
+    private final IApiService apiService;
 
     @GetMapping("/allMeal")
-    public ResponseEntity<ResponseDTO> getListMeal() {
+    public ResponseEntity<ResponseBodyDTO> getListMeal() {
         List<Meal> mealList = mealServiceImpl.getAllMeals();
         if (!mealList.isEmpty()) {
             Map<String, List<Meal>> respoData = new HashMap<>();
             respoData.put("mealList", mealList);
-            ResponseDTO responseDTO = ResponseDTO.builder()
-                    .status(ResponseDTO.ResponseStatus.OK)
+            ResponseBodyDTO responseBodyDTO = ResponseBodyDTO.builder()
+                    .status(ResponseBodyDTO.ResponseStatus.OK)
                     .data(respoData)
                     .build();
-            return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+            return new ResponseEntity<>(responseBodyDTO, HttpStatus.OK);
         }
-        return new ResponseEntity<>(ResponseDTO.builder()
-                .status(ResponseDTO.ResponseStatus.ERROR)
+        return new ResponseEntity<>(ResponseBodyDTO.builder()
+                .status(ResponseBodyDTO.ResponseStatus.ERROR)
                 .message("Meals not found")
                 .build(), HttpStatus.OK);
     }
@@ -76,7 +71,7 @@ public class MealRestController {
     }
 
     @PostMapping("/addMeal")
-    public ResponseEntity<ResponseDTO> addMeal(@RequestBody AddMealRequestDTO newMeal) {
+    public ResponseEntity<ResponseBodyDTO> addMeal(@RequestBody AddMealRequestDTO newMeal) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             Object principal = authentication.getPrincipal();
@@ -84,26 +79,26 @@ public class MealRestController {
                 try {
                     mealServiceImpl.addMeal(userDetails.getId(), newMeal);
                 } catch (Exception e) {
-                    ResponseDTO responseDTO = ResponseDTO.builder()
-                            .status(ResponseDTO.ResponseStatus.ERROR)
+                    ResponseBodyDTO responseBodyDTO = ResponseBodyDTO.builder()
+                            .status(ResponseBodyDTO.ResponseStatus.ERROR)
                             .message("Meal not created")
                             .build();
                     log.error("AddMeal: {}", e.getMessage());
                     e.printStackTrace();
-                    return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+                    return new ResponseEntity<>(responseBodyDTO, HttpStatus.OK);
                 }
             }
         }
 
-        ResponseDTO responseDTO = ResponseDTO.builder()
-                .status(ResponseDTO.ResponseStatus.OK)
+        ResponseBodyDTO responseBodyDTO = ResponseBodyDTO.builder()
+                .status(ResponseBodyDTO.ResponseStatus.OK)
                 .message("Meal created")
                 .build();
-        return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
+        return new ResponseEntity<>(responseBodyDTO, HttpStatus.CREATED);
     }
 
     @PostMapping("/generateFoodBoard")
-    public ResponseEntity<ResponseDTO> generateFoodBoard(@RequestBody FoodBoardPageDTO foodBoardPageDTO) {
+    public ResponseEntity<ResponseBodyDTO> generateFoodBoard(@RequestBody FoodBoardPageDTO foodBoardPageDTO) {
         Map<String, List<?>> responseData = new HashMap<>();
         try{
             List<Meal> mealList = mealRepository.findMealsByMealIdIn(foodBoardPageDTO.getMealIds());
@@ -112,20 +107,20 @@ public class MealRestController {
             responseData.put("ingredientToBuyDTOList", ingredientToBuyDTOList);
 
         }catch (Exception e){
-            ResponseDTO responseDTO = ResponseDTO.builder()
-                    .status(ResponseDTO.ResponseStatus.ERROR)
+            ResponseBodyDTO responseBodyDTO = ResponseBodyDTO.builder()
+                    .status(ResponseBodyDTO.ResponseStatus.ERROR)
                     .message("Meal not created")
                     .build();
             log.error("generateFoodBoard: {}", e.getMessage());
             e.printStackTrace();
-            return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+            return new ResponseEntity<>(responseBodyDTO, HttpStatus.OK);
         }
 
-        ResponseDTO responseDTO = ResponseDTO.builder()
-                .status(ResponseDTO.ResponseStatus.OK)
+        ResponseBodyDTO responseBodyDTO = ResponseBodyDTO.builder()
+                .status(ResponseBodyDTO.ResponseStatus.OK)
                 .data(responseData)
                 .build();
-        return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+        return new ResponseEntity<>(responseBodyDTO, HttpStatus.OK);
     }
 //    @PostMapping("/generateFoodRecipe")
 //    public ResponseEntity<List<FoodDTO>> generateFoodRecipe(@RequestParam("ids") String ids, @RequestParam("multiplier") Double multiplier) {
@@ -158,8 +153,8 @@ public class MealRestController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping(value = "/getMealStarterPack")
-    public ResponseEntity<ResponseDTO> getMealStarterPack() {
+    @GetMapping(value = "/getMealStarterPack", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResponseBodyDTO> getMealStarterPack() {
         try {
             Map<String, List<?>> responseData = new HashMap<>();
 
@@ -171,12 +166,11 @@ public class MealRestController {
             responseData.put("ingredientUnits", ingredientUnitList);
             List<MeasurementType> measurementTypeList = Arrays.asList(MeasurementType.values());
             responseData.put("measurementTypes", measurementTypeList);
-            ResponseDTO response = ResponseDTO.builder()
-                    .status(ResponseDTO.ResponseStatus.OK)
+            ResponseBodyDTO response = ResponseBodyDTO.builder()
+                    .status(ResponseBodyDTO.ResponseStatus.OK)
                     .data(responseData)
                     .build();
             return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_JSON)
                     .body(response);
 
         } catch (Exception e) {
@@ -185,14 +179,14 @@ public class MealRestController {
 
     }
 
-    @GetMapping(value = "/ingredients")
-    public ResponseEntity<ResponseDTO> getIngredients() {
+    @GetMapping(value = "/ingredients", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResponseBodyDTO> getIngredients() {
         try {
             Map<String, List<IngredientName>> responseData = new HashMap<>();
             List<IngredientName> ingredientNames = mealServiceImpl.getMealIngredientNames();
             responseData.put("ingredients", ingredientNames);
-            ResponseDTO response = ResponseDTO.builder()
-                    .status(ResponseDTO.ResponseStatus.OK)
+            ResponseBodyDTO response = ResponseBodyDTO.builder()
+                    .status(ResponseBodyDTO.ResponseStatus.OK)
                     .data(responseData)
                     .build();
             return ResponseEntity.ok()
@@ -203,10 +197,10 @@ public class MealRestController {
         }
     }
 
-    private ResponseEntity<ResponseDTO> getResponseError(Exception e) {
+    private ResponseEntity<ResponseBodyDTO> getResponseError(Exception e) {
         log.error("Error retrieving data", e);
-        ResponseDTO errorResponse = ResponseDTO.builder()
-                .status(ResponseDTO.ResponseStatus.ERROR)
+        ResponseBodyDTO errorResponse = ResponseBodyDTO.builder()
+                .status(ResponseBodyDTO.ResponseStatus.ERROR)
                 .data(Collections.singletonMap("error", "An error occurred"))
                 .build();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -214,156 +208,24 @@ public class MealRestController {
                 .body(errorResponse);
     }
 
-    @PostMapping(value = "/downloadMealDocument")
-    public ResponseEntity<byte[]> downloadMealDocument(@RequestBody List<Long> mealIds) throws IOException {
-        if (mealIds == null || mealIds.isEmpty()){
-            return ResponseEntity.ok().body(null);
-        }
-        List<String> mealNames = mealServiceImpl.getMealNamesByIdList(mealIds);
-
-        try (XWPFDocument document = new XWPFDocument(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            setPageOrientationLandscape(document);
-            XWPFTable table = createTableWithHeaders(document);
-            fillTableWithMeals(table, mealNames);
-
-            document.write(out);
-            HttpHeaders headers = createHttpHeaders();
-
-            return ResponseEntity
-                    .ok()
-                    .headers(headers)
-                    .body(out.toByteArray());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
-
-    }
-
-    private void fillTableWithMeals(XWPFTable table, List<String> mealNames) {
-        int mealIndex = 0;
-        String[] mealTypes = {"Śniadanie", "Przekąska", "Obiad", "Kolacja"};
-
-        for (int rowIndex = 1; rowIndex <= mealTypes.length; rowIndex++) {
-            XWPFTableRow row = table.getRow(rowIndex);
-            for (int colIndex = 1; colIndex <= 7; colIndex++) {
-                XWPFTableCell cell = row.getCell(colIndex);
-                if (cell == null) {
-                    cell = row.addNewTableCell();
-                }
-                if (mealIndex < mealNames.size()) {
-                    String mealName = mealNames.get(mealIndex);
-                    cell.setText(mealName.equals("-") || mealName.isEmpty() ? "" : mealName);
-                    mealIndex++;
-                } else {
-                    cell.setText("");
-                }
+    @PostMapping(value = "/getMealNamesById")
+    public ResponseEntity<ResponseBodyDTO> getMealNamesById(@RequestBody List<Long> mealIds) {
+        Map<String, List<String>> responseData = new HashMap<>();
+        try {
+            List<String> mealNames = mealServiceImpl.getMealNamesByIdList(mealIds);
+            if (!mealNames.isEmpty()) {
+                responseData.put("mealNames", mealNames);
+                ResponseBodyDTO responseBodyDTO = ResponseBodyDTO.builder()
+                        .status(ResponseBodyDTO.ResponseStatus.OK)
+                        .data(responseData)
+                        .build();
+                return ResponseEntity.ok().body(responseBodyDTO);
             }
+            return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.OK, "No data", responseData, HttpStatus.OK);
+        }
+        catch (Exception e) {
+            return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.ERROR, "No data", responseData, HttpStatus.OK);
         }
     }
 
-    private HttpHeaders createHttpHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        headers.setContentDispositionFormData("attachment", "jedzonko.docx");
-        return headers;
-    }
-
-    private XWPFTable createTableWithHeaders(XWPFDocument document) {
-        XWPFTable table = document.createTable(5, 8);
-
-        String[] daysOfWeek = {"", "Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota", "Niedziela"};
-        XWPFTableRow headerRow = table.getRow(0);
-        for (int colIndex = 0; colIndex < daysOfWeek.length; colIndex++) {
-            XWPFTableCell cell = headerRow.getCell(colIndex);
-            if (cell == null) {
-                cell = headerRow.addNewTableCell();
-            }
-            cell.setText(daysOfWeek[colIndex]);
-            centerCellContent(cell);
-            if (colIndex == 0) {
-                removeCellBorders(cell, true, true, true, true);
-            } else {
-                removeCellBorders(cell, true, true, false, true);
-            }
-        }
-
-        String[] mealTypes = {"Śniadanie", "Przekąska", "Obiad", "Kolacja"};
-        for (int rowIndex = 1; rowIndex <= mealTypes.length; rowIndex++) {
-            XWPFTableRow row = table.getRow(rowIndex);
-            XWPFTableCell cell = row.getCell(0);
-            if (cell == null) {
-                cell = row.addNewTableCell();
-            }
-            cell.setText(mealTypes[rowIndex - 1]);
-            centerCellContent(cell);
-            removeCellBorders(cell, true, false, true, true);
-        }
-
-        return table;
-    }
-
-
-    private void removeCellBorders(XWPFTableCell cell, boolean top, boolean right, boolean bottom, boolean left) {
-        CTTc ctTc = cell.getCTTc();
-        CTTcPr tcPr = ctTc.getTcPr();
-        if (tcPr == null) {
-            tcPr = ctTc.addNewTcPr();
-        }
-        CTTcBorders borders = tcPr.getTcBorders();
-        if (borders == null) {
-            borders = tcPr.addNewTcBorders();
-        }
-        if (top) {
-            CTBorder topBorder = borders.addNewTop();
-            topBorder.setVal(STBorder.NONE);
-            topBorder.setSz(BigInteger.valueOf(0));
-        }
-        if (right) {
-            CTBorder rightBorder = borders.addNewRight();
-            rightBorder.setVal(STBorder.NONE);
-            rightBorder.setSz(BigInteger.valueOf(0));
-        }
-        if (bottom) {
-            CTBorder bottomBorder = borders.addNewBottom();
-            bottomBorder.setVal(STBorder.NONE);
-            bottomBorder.setSz(BigInteger.valueOf(0));
-        }
-        if (left) {
-            CTBorder leftBorder = borders.addNewLeft();
-            leftBorder.setVal(STBorder.NONE);
-            leftBorder.setSz(BigInteger.valueOf(0));
-        }
-    }
-
-    private void setPageOrientationLandscape(XWPFDocument document) {
-        CTBody body = document.getDocument().getBody();
-        if (!body.isSetSectPr()) {
-            body.addNewSectPr();
-        }
-        CTSectPr section = body.getSectPr();
-        if (!section.isSetPgSz()) {
-            section.addNewPgSz();
-        }
-        CTPageSz pageSize = section.getPgSz();
-        pageSize.setOrient(STPageOrientation.LANDSCAPE);
-        pageSize.setW(BigInteger.valueOf(16840));
-        pageSize.setH(BigInteger.valueOf(11900));
-    }
-
-    private void centerCellContent(XWPFTableCell cell) {
-        for (XWPFParagraph paragraph : cell.getParagraphs()) {
-            paragraph.setAlignment(ParagraphAlignment.CENTER);
-        }
-
-        CTTc ctTc = cell.getCTTc();
-        CTTcPr tcPr = ctTc.getTcPr();
-        if (tcPr == null) {
-            tcPr = ctTc.addNewTcPr();
-        }
-        if (!tcPr.isSetVAlign()) {
-            tcPr.addNewVAlign();
-        }
-        tcPr.getVAlign().setVal(STVerticalJc.CENTER);
-    }
 }

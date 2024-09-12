@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pl.kowalecki.dietplannerrestapi.model.DTO.ConfirmationTokenDTO;
-import pl.kowalecki.dietplannerrestapi.model.DTO.ResponseDTO;
+import pl.kowalecki.dietplannerrestapi.model.DTO.ResponseBodyDTO;
 import pl.kowalecki.dietplannerrestapi.services.UserServiceImpl;
 
 
@@ -24,7 +24,7 @@ public class RegisterConfirmationRestController {
 
 
     @GetMapping(value = "/confirm")
-    public ResponseEntity<ResponseDTO> confirmUser(@RequestParam("token") String confirmationToken){
+    public ResponseEntity<ResponseBodyDTO> confirmUser(@RequestParam("token") String confirmationToken){
         Map<String, String> errors = new HashMap<>();
         ConfirmationTokenDTO token = new ConfirmationTokenDTO(confirmationToken);
 
@@ -34,16 +34,16 @@ public class RegisterConfirmationRestController {
                 return new ResponseEntity<>(HttpStatus.OK);
             }else {
                 errors.put("ACTIVATED", "Account is already active");
-                ResponseDTO response = ResponseDTO.builder()
-                        .status(ResponseDTO.ResponseStatus.ERROR)
+                ResponseBodyDTO response = ResponseBodyDTO.builder()
+                        .status(ResponseBodyDTO.ResponseStatus.ERROR)
                         .data(errors)
                         .build();
                 return new ResponseEntity<>(response, HttpStatus.OK);
             }
         }else {
             errors.put("INVALID_TOKEN", "Invalid token");
-            ResponseDTO response = ResponseDTO.builder()
-                    .status(ResponseDTO.ResponseStatus.ERROR)
+            ResponseBodyDTO response = ResponseBodyDTO.builder()
+                    .status(ResponseBodyDTO.ResponseStatus.ERROR)
                     .data(errors)
                     .build();
             return new ResponseEntity<>(response, HttpStatus.OK);
