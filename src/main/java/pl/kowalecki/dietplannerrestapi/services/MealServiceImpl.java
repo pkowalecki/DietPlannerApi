@@ -29,8 +29,6 @@ import java.util.stream.Collectors;
 public class MealServiceImpl implements MealService{
 
     private final MealRepository mealRepository;
-    private final IngredientRepository ingredientRepository;
-    private final UserServiceImpl userService;
     private final IngredientNamesRepository ingredientNamesRepository;
     private final UserRepository userRepository;
 
