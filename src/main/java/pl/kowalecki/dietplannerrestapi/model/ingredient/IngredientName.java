@@ -19,5 +19,15 @@ public class IngredientName {
     private Long id;
     @Column(name = "name")
     private String name;
+    @Column(name = "brand")
+    private String brand;
+    @Column(name = "protein")
+    private int protein;
+    @Column(name = "carbohydrates")
+    private int carbohydrates;
+    @Column(name = "fat")
+    private int fat;
+    @Column(name = "kcal")
+    private int kcal;
 
 }

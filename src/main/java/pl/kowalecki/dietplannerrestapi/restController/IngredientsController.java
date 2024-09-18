@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.kowalecki.dietplannerrestapi.model.DTO.ResponseBodyDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientNameDTO;
+import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientName;
 import pl.kowalecki.dietplannerrestapi.services.IApiService;
 import pl.kowalecki.dietplannerrestapi.services.IngredientNamesService;
 
@@ -32,15 +33,22 @@ public class IngredientsController {
     }
 
     @PostMapping("/ingredientNames/ingredient")
-    public ResponseEntity<ResponseBodyDTO> addIngredient(@RequestBody String newIngredientName) {
-        if (newIngredientName == null || newIngredientName.isEmpty()) {
+    public ResponseEntity<ResponseBodyDTO> addIngredient(@RequestBody IngredientNameDTO newIngredientName) {
+        if (newIngredientName == null || newIngredientName.getIngredientName().isEmpty()) {
             return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.OK, "", null, HttpStatus.NO_CONTENT);
         }
-        boolean ingredientExists = ingredientService.existsByName(newIngredientName);
+        boolean ingredientExists = ingredientService.existsByName(newIngredientName.getIngredientName());
         if(ingredientExists){
             return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.ERROR, "Produkt o podanej nazwie już istnieje",  HttpStatus.CONFLICT);
         }
-        ingredientService.addIngredientName(newIngredientName);
+        IngredientName ingredientName = new IngredientName();
+        ingredientName.setName(newIngredientName.getIngredientName());
+        ingredientName.setBrand(newIngredientName.getIngredientBrand());
+        ingredientName.setProtein(newIngredientName.getProtein());
+        ingredientName.setCarbohydrates(newIngredientName.getCarbohydrates());
+        ingredientName.setFat(newIngredientName.getFat());
+        ingredientName.setKcal(newIngredientName.getKcal());
+        ingredientService.addIngredientName(ingredientName);
         return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.OK,
                 "Produkt został dodany",
                 HttpStatus.CREATED);

@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientNameDTO;
-import pl.kowalecki.dietplannerrestapi.model.ingredient.Ingredient;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientName;
 import pl.kowalecki.dietplannerrestapi.repository.IngredientNamesRepository;
 
@@ -27,7 +26,8 @@ public class IngredientNamesServiceImpl implements IngredientNamesService {
                 .map(ingredient ->{
                     IngredientNameDTO ingredientDTO = new IngredientNameDTO();
                     ingredientDTO.setId(ingredient.getId());
-                    ingredientDTO.setName(ingredient.getName());
+                    ingredientDTO.setIngredientName(ingredient.getName());
+                    ingredientDTO.setIngredientBrand(ingredient.getBrand());
                     return ingredientDTO;
                 })
                 .collect(Collectors.toList());
@@ -39,9 +39,7 @@ public class IngredientNamesServiceImpl implements IngredientNamesService {
     }
 
     @Override
-    public void addIngredientName(String newIngredientName) {
-        IngredientName ingredientName = new IngredientName();
-        ingredientName.setName(newIngredientName);
-        ingredientNamesRepository.save(ingredientName);
+    public void addIngredientName(IngredientName newIngredientName) {
+        ingredientNamesRepository.save(newIngredientName);
     }
 }
