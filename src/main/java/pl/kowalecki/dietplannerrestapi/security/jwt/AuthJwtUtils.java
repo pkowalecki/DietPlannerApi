@@ -6,14 +6,18 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.WebUtils;
+import pl.kowalecki.dietplannerrestapi.model.User;
 import pl.kowalecki.dietplannerrestapi.services.UserDetailsImpl;
+import pl.kowalecki.dietplannerrestapi.services.UserService;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.Optional;
 
 @Component
 @Slf4j
@@ -33,6 +37,9 @@ public class AuthJwtUtils {
 
     @Value("${dietplanner.app.jwtRefreshCookieName}")
     private String jwtRefCookie;
+
+    @Autowired
+    private UserService userService;
 
     private Key key() {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
@@ -66,7 +73,7 @@ public class AuthJwtUtils {
         String jwt = generateTokenFromEmail(userPrincipal.getEmail());
         return ResponseCookie.from(jwtCookie, jwt)
                 .path("/")
-                .maxAge(jwtExpiration/1000)
+                .maxAge(jwtExpiration / 1000)
                 .httpOnly(true)
 //                .secure(true) // HTTPS
                 .build();
@@ -122,5 +129,12 @@ public class AuthJwtUtils {
             log.error("JWT claims string is empty: {}", e.getMessage());
         }
         return false;
+    }
+
+    public Integer getUserIdFromToken(HttpServletRequest request) {
+        String jwt = getJwtFromCookies(request);
+        String userEmail = getEmailFromJwtToken(jwt);
+        Optional<User> user = userService.findByEmail(userEmail);
+        return user.map(User::getId).orElse(null);
     }
 }

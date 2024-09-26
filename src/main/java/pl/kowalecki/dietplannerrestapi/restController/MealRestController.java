@@ -1,5 +1,6 @@
 package pl.kowalecki.dietplannerrestapi.restController;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -12,7 +13,9 @@ import pl.kowalecki.dietplannerrestapi.model.DTO.FoodBoardPageDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.ResponseBodyDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.AddMealRequestDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientToBuyDTO;
+import pl.kowalecki.dietplannerrestapi.model.DTO.meal.MealHistoryDTO;
 import pl.kowalecki.dietplannerrestapi.model.Meal;
+import pl.kowalecki.dietplannerrestapi.model.MealHistory;
 import pl.kowalecki.dietplannerrestapi.model.enums.MealType;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.Ingredient;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientName;
@@ -21,10 +24,13 @@ import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement.Me
 import pl.kowalecki.dietplannerrestapi.repository.MealRepository;
 import pl.kowalecki.dietplannerrestapi.security.jwt.AuthJwtUtils;
 import pl.kowalecki.dietplannerrestapi.services.IApiService;
+import pl.kowalecki.dietplannerrestapi.services.MealHistoryService;
 import pl.kowalecki.dietplannerrestapi.services.MealServiceImpl;
 import pl.kowalecki.dietplannerrestapi.services.UserDetailsImpl;
 
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:3000", maxAge = 3600)
 @RequestMapping("/api/auth/meal")
@@ -37,6 +43,7 @@ public class MealRestController {
     private final MealServiceImpl mealServiceImpl;
     private final MealRepository mealRepository;
     private final IApiService apiService;
+    private final MealHistoryService mealHistoryService;
 
     @GetMapping("/allMeal")
     public ResponseEntity<ResponseBodyDTO> getListMeal() {
@@ -98,15 +105,15 @@ public class MealRestController {
     }
 
     @PostMapping("/generateFoodBoard")
-    public ResponseEntity<ResponseBodyDTO> generateFoodBoard(@RequestBody FoodBoardPageDTO foodBoardPageDTO) {
+    public ResponseEntity<ResponseBodyDTO> generateFoodBoard(@RequestBody FoodBoardPageDTO foodBoardPageDTO, HttpServletRequest request) {
         Map<String, List<?>> responseData = new HashMap<>();
-        try{
+        try {
             List<Meal> mealList = mealRepository.findMealsByMealIdIn(foodBoardPageDTO.getMealIds());
             List<IngredientToBuyDTO> ingredientToBuyDTOList = mealServiceImpl.getMealIngredientsFinalList(foodBoardPageDTO.getMealIds(), foodBoardPageDTO.getMultiplier());
             responseData.put("mealList", mealList);
             responseData.put("ingredientToBuyDTOList", ingredientToBuyDTOList);
 
-        }catch (Exception e){
+        } catch (Exception e) {
             ResponseBodyDTO responseBodyDTO = ResponseBodyDTO.builder()
                     .status(ResponseBodyDTO.ResponseStatus.ERROR)
                     .message("Meal not created")
@@ -115,6 +122,14 @@ public class MealRestController {
             e.printStackTrace();
             return new ResponseEntity<>(responseBodyDTO, HttpStatus.OK);
         }
+
+        Integer userId = authJwtUtils.getUserIdFromToken(request);
+        MealHistory mealHistory = MealHistory.builder()
+                .userId(Long.valueOf(userId))
+                .mealsIds(foodBoardPageDTO.getMealIds().stream().map(String::valueOf).collect(Collectors.joining(",")))
+                .created(LocalDateTime.now())
+                .build();
+        mealHistoryService.saveMealHistory(mealHistory);
 
         ResponseBodyDTO responseBodyDTO = ResponseBodyDTO.builder()
                 .status(ResponseBodyDTO.ResponseStatus.OK)
@@ -222,10 +237,19 @@ public class MealRestController {
                 return ResponseEntity.ok().body(responseBodyDTO);
             }
             return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.OK, "No data", responseData, HttpStatus.OK);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.ERROR, "No data", responseData, HttpStatus.OK);
         }
+    }
+
+    @PostMapping(value = "/getMealHistory")
+    public ResponseEntity<ResponseBodyDTO> getMealHistory(HttpServletRequest request){
+        Integer userId = authJwtUtils.getUserIdFromToken(request);
+        List<MealHistoryDTO> mealList = mealHistoryService.findMealHistoriesByUserId(Long.valueOf(userId));
+        //Mam historie i teraz buduję response z przepisami i innymi pierdołami
+//        for (Meal meal : mealList)
+        return apiService.returnResponseData()
+
     }
 
 }
