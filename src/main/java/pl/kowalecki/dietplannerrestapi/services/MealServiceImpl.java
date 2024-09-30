@@ -8,6 +8,7 @@ import pl.kowalecki.dietplannerrestapi.IngredientsListHelper;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.AddMealRequestDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientToBuyDTO;
+import pl.kowalecki.dietplannerrestapi.model.DTO.meal.MealDTO;
 import pl.kowalecki.dietplannerrestapi.model.Meal;
 import pl.kowalecki.dietplannerrestapi.model.User;
 import pl.kowalecki.dietplannerrestapi.model.enums.MealType;
@@ -151,6 +152,10 @@ public class MealServiceImpl implements MealService{
         return mealRepository.findMealsByUserId(userId);
     }
 
+    @Override
+    public List<Meal> findMealsByMealIdIn(List<Long> mealIds) {
+        return mealRepository.findMealsByMealIdIn(mealIds);
+    }
 
     public List<String> getMealNamesByIdList(List<Long> list) {
         List<String> mealNames = new ArrayList<>();

@@ -21,4 +21,5 @@ public class MealHistory {
     private Long userId;
     private String mealsIds;
     private LocalDateTime created;
+    private Double multiplier;
 }

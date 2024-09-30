@@ -2,6 +2,7 @@ package pl.kowalecki.dietplannerrestapi.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import pl.kowalecki.dietplannerrestapi.model.DTO.meal.MealDTO;
 import pl.kowalecki.dietplannerrestapi.model.Meal;
 
 import java.util.List;

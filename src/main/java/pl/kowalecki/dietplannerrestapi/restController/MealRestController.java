@@ -11,9 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import pl.kowalecki.dietplannerrestapi.model.DTO.FoodBoardPageDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.ResponseBodyDTO;
-import pl.kowalecki.dietplannerrestapi.model.DTO.meal.AddMealRequestDTO;
-import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientToBuyDTO;
-import pl.kowalecki.dietplannerrestapi.model.DTO.meal.MealHistoryDTO;
+import pl.kowalecki.dietplannerrestapi.model.DTO.meal.*;
 import pl.kowalecki.dietplannerrestapi.model.Meal;
 import pl.kowalecki.dietplannerrestapi.model.MealHistory;
 import pl.kowalecki.dietplannerrestapi.model.enums.MealType;
@@ -128,6 +126,7 @@ public class MealRestController {
                 .userId(Long.valueOf(userId))
                 .mealsIds(foodBoardPageDTO.getMealIds().stream().map(String::valueOf).collect(Collectors.joining(",")))
                 .created(LocalDateTime.now())
+                .multiplier(foodBoardPageDTO.getMultiplier())
                 .build();
         mealHistoryService.saveMealHistory(mealHistory);
 
@@ -242,14 +241,76 @@ public class MealRestController {
         }
     }
 
-    @PostMapping(value = "/getMealHistory")
+    @GetMapping(value = "/getMealHistory")
     public ResponseEntity<ResponseBodyDTO> getMealHistory(HttpServletRequest request){
+        Map<String, List<MealHistoryDTO>> data = new HashMap<>();
         Integer userId = authJwtUtils.getUserIdFromToken(request);
-        List<MealHistoryDTO> mealList = mealHistoryService.findMealHistoriesByUserId(Long.valueOf(userId));
-        //Mam historie i teraz buduję response z przepisami i innymi pierdołami
-//        for (Meal meal : mealList)
-        return apiService.returnResponseData()
+        List<MealHistoryDTO> mealHistoryList = mealHistoryService.findMealHistoriesByUserId(Long.valueOf(userId));
+        data.put("mealHistoryList", mealHistoryList);
+        return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.OK, data, HttpStatus.OK);
 
+
+    }
+
+    @PostMapping(value = "/getMealHistory")
+    public ResponseEntity<ResponseBodyDTO> getMealHistory(@RequestBody MealHistoryDTO mealHistoryDTO, HttpServletRequest request){
+        System.out.println("Tymczasowo taki fajen post kurdebele");
+        return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.OK, HttpStatus.OK);
+    }
+
+    private List<MealDTO> getMealDTOList(List<Meal> mealList) {
+        List<MealDTO> mealDTOList = new ArrayList<>();
+        for (Meal meal : mealList) {
+            mealDTOList.add(MealDTO.builder()
+                            .mealId(meal.getMealId())
+                            .additionDate(meal.getAdditionDate())
+                            .editDate(meal.getEditDate())
+                            .name(meal.getName())
+                            .description(meal.getDescription())
+                            .recipe(meal.getRecipe())
+                            .ingredients(setMealDTOIngredients(meal.getIngredients()))
+                            .notes(meal.getNotes())
+                            .mealTypes(setMealDTOTypes(meal.getMealTypes()))
+                            .isDeleted(meal.isDeleted())
+                    .build());
+        }
+        return mealDTOList;
+    }
+
+    private List<MealTypeDTO> setMealDTOTypes(List<MealType> mealTypes) {
+        List<MealTypeDTO> mealTypeDTOList = new ArrayList<>();
+        for (MealType mealType : mealTypes) {
+            mealTypeDTOList.add(MealTypeDTO.builder()
+                            .mealTypeEn(mealType.getMealTypeEn())
+                            .mealTypePl(mealType.getMealTypePl())
+                    .build());
+        }
+        return mealTypeDTOList;
+    }
+
+    private List<IngredientDTO> setMealDTOIngredients(List<Ingredient> ingredients) {
+        List<IngredientDTO> ingredientDTOList = new ArrayList<>();
+        for (Ingredient ingredient : ingredients) {
+            ingredientDTOList.add(IngredientDTO.builder()
+                            .name(setIngredientName(ingredient.getIngredientNameId()))
+                            .ingredientAmount(ingredient.getIngredientAmount())
+                            .ingredientUnit(ingredient.getIngredientUnit().getShortName())
+                            .measurementValue(ingredient.getMeasurementValue())
+                            .measurementType(ingredient.getMeasurementType().getMeasurementName())
+                    .build());
+        }
+        return ingredientDTOList;
+    }
+
+    private IngredientNameDTO setIngredientName(IngredientName ingredientNameId) {
+        return IngredientNameDTO.builder()
+                .ingredientName(ingredientNameId.getName())
+                .ingredientBrand(ingredientNameId.getBrand())
+                .protein(ingredientNameId.getProtein())
+                .carbohydrates(ingredientNameId.getCarbohydrates())
+                .fat(ingredientNameId.getFat())
+                .kcal(ingredientNameId.getKcal())
+                .build();
     }
 
 }

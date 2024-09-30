@@ -9,6 +9,7 @@ import lombok.*;
 @ToString
 @Builder
 public class IngredientDTO {
+    private IngredientNameDTO name;
     private Double ingredientAmount;
     private String ingredientUnit;
     private Double measurementValue;
