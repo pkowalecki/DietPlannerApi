@@ -8,12 +8,15 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import pl.kowalecki.dietplannerrestapi.model.DTO.FoodBoardPageDTO;
+import pl.kowalecki.dietplannerrestapi.model.DTO.MealHistoryResponse;
 import pl.kowalecki.dietplannerrestapi.model.DTO.ResponseBodyDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.*;
 import pl.kowalecki.dietplannerrestapi.model.Meal;
 import pl.kowalecki.dietplannerrestapi.model.MealHistory;
+import pl.kowalecki.dietplannerrestapi.model.User;
 import pl.kowalecki.dietplannerrestapi.model.enums.MealType;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.Ingredient;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientName;
@@ -124,6 +127,7 @@ public class MealRestController {
         Integer userId = authJwtUtils.getUserIdFromToken(request);
         MealHistory mealHistory = MealHistory.builder()
                 .userId(Long.valueOf(userId))
+                .public_id(UUID.randomUUID())
                 .mealsIds(foodBoardPageDTO.getMealIds().stream().map(String::valueOf).collect(Collectors.joining(",")))
                 .created(LocalDateTime.now())
                 .multiplier(foodBoardPageDTO.getMultiplier())
@@ -253,16 +257,41 @@ public class MealRestController {
     }
 
     @PostMapping(value = "/getMealHistory")
-    public ResponseEntity<ResponseBodyDTO> getMealHistory(@RequestBody MealHistoryDTO mealHistoryDTO, HttpServletRequest request){
-        System.out.println("Tymczasowo taki fajen post kurdebele");
-        return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.OK, HttpStatus.OK);
+    public ResponseEntity<ResponseBodyDTO> getMealHistory(@RequestBody String id, HttpServletRequest request, Authentication authentication){
+        //sprawdzamy, czy typ się nie podszywa i wysłane ID jest typa od którego przyszedł req
+        UserDetails user = (UserDetails) authentication.getPrincipal();
+        MealHistory mealHistory = mealHistoryService.findMealHistoryByUUID(UUID.fromString(id));
+        if (mealHistory.getUserId().equals(((UserDetailsImpl) user).getId().longValue())){
+            Map<String, MealHistoryResponse> data = new HashMap<>();
+            MealHistoryResponse response = new MealHistoryResponse();
+            /*
+            * Wszystko jest git, więc zaczynamy wyciąganie.
+            * Mamy IDKI posiłków, więc na tej podstawie tworzymy tabelkę z posiłkami(tak jak w doku) - to nie, tabelkę tworzymy na froncie, plujemy nazwami.
+            * Następnie na podstawie ID posiłków tworzymy listę zakupów
+            * I chyba tyle
+            * */
+            String ids = mealHistory.getMealsIds();
+            List<Long> mealIds = Arrays.stream(ids.split(","))
+                    .map(Long::parseLong)
+                    .collect(Collectors.toList());
+            List<String> mealNames = mealServiceImpl.getMealNamesByIdList(mealIds);
+            response.setMealNames(mealNames);
+            response.setMultiplier(mealHistory.getMultiplier());
+            response.setMeals(getMealDTOList(mealIds));
+            data.put("mealHistory", response);
+            return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.OK, data, HttpStatus.OK);
+        }else{
+            return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.ERROR, HttpStatus.UNAUTHORIZED);
+        }
     }
 
-    private List<MealDTO> getMealDTOList(List<Meal> mealList) {
+    //TODO zerknąć na lepszy sposób niż jechanie przepisów w pętli
+    private List<MealDTO> getMealDTOList(List<Long> mealIds) {
         List<MealDTO> mealDTOList = new ArrayList<>();
-        for (Meal meal : mealList) {
+        for (Long mealId : mealIds) {
+            if (mealId == 0) continue;
+            Meal meal = mealServiceImpl.getMealById(mealId);
             mealDTOList.add(MealDTO.builder()
-                            .mealId(meal.getMealId())
                             .additionDate(meal.getAdditionDate())
                             .editDate(meal.getEditDate())
                             .name(meal.getName())
@@ -270,10 +299,11 @@ public class MealRestController {
                             .recipe(meal.getRecipe())
                             .ingredients(setMealDTOIngredients(meal.getIngredients()))
                             .notes(meal.getNotes())
-                            .mealTypes(setMealDTOTypes(meal.getMealTypes()))
+                            .mealTypes(meal.getMealTypes())
                             .isDeleted(meal.isDeleted())
                     .build());
         }
+        System.out.println(mealDTOList);
         return mealDTOList;
     }
 
@@ -288,15 +318,15 @@ public class MealRestController {
         return mealTypeDTOList;
     }
 
-    private List<IngredientDTO> setMealDTOIngredients(List<Ingredient> ingredients) {
-        List<IngredientDTO> ingredientDTOList = new ArrayList<>();
+    private List<IngredientTDTO> setMealDTOIngredients(List<Ingredient> ingredients) {
+        List<IngredientTDTO> ingredientDTOList = new ArrayList<>();
         for (Ingredient ingredient : ingredients) {
-            ingredientDTOList.add(IngredientDTO.builder()
+            ingredientDTOList.add(IngredientTDTO.builder()
                             .name(setIngredientName(ingredient.getIngredientNameId()))
                             .ingredientAmount(ingredient.getIngredientAmount())
-                            .ingredientUnit(ingredient.getIngredientUnit().getShortName())
+                            .ingredientUnit(ingredient.getIngredientUnit())
                             .measurementValue(ingredient.getMeasurementValue())
-                            .measurementType(ingredient.getMeasurementType().getMeasurementName())
+                            .measurementType(ingredient.getMeasurementType())
                     .build());
         }
         return ingredientDTOList;

@@ -3,6 +3,7 @@ package pl.kowalecki.dietplannerrestapi.model.DTO.meal;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -12,8 +13,9 @@ import java.time.LocalDateTime;
 @Builder
 public class MealHistoryDTO{
 
-    private Long id;
+    private UUID public_id;
     private Long userId;
     private String mealsIds;
     private LocalDateTime created;
+    private Double multiplier;
 }

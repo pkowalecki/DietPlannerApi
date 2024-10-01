@@ -13,14 +13,14 @@ import java.util.List;
 @ToString
 @Builder
 public class MealDTO {
-    private Long mealId;
+//    private Long mealId;
     private LocalDateTime additionDate;
     private LocalDateTime editDate;
     private String name;
     private String description;
     private String recipe;
-    private List<IngredientDTO> ingredients;
+    private List<IngredientTDTO> ingredients;
     private String notes;
-    private List<MealTypeDTO> mealTypes;
+    private List<MealType> mealTypes;
     private boolean isDeleted;
 }

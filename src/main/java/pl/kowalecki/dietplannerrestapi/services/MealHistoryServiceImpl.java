@@ -10,6 +10,7 @@ import pl.kowalecki.dietplannerrestapi.repository.MealHistoryRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -34,13 +35,19 @@ public class MealHistoryServiceImpl implements MealHistoryService {
             for (MealHistory historicalMeal : mealHistory) {
                 mealHistoryDTO.add(
                         MealHistoryDTO.builder()
-                                .id(historicalMeal.getId())
+                                .public_id(historicalMeal.getPublic_id())
                                 .userId(historicalMeal.getUserId())
                                 .mealsIds(historicalMeal.getMealsIds())
                                 .created(historicalMeal.getCreated())
+                                .multiplier(historicalMeal.getMultiplier())
                                 .build());
             }
             return mealHistoryDTO;
         }
+    }
+
+    @Override
+    public MealHistory findMealHistoryByUUID(UUID id) {
+        return mealHistoryRepository.findByUUID(id);
     }
 }

@@ -14,6 +14,7 @@ import java.util.List;
 @ToString
 @Builder
 public class MealHistoryResponse {
-    List<MealHistoryDTO> mealHistoryDTOs;
+    List<String> mealNames;
+    Double multiplier;
     List<MealDTO> meals;
 }
