@@ -258,18 +258,11 @@ public class MealRestController {
 
     @PostMapping(value = "/getMealHistory")
     public ResponseEntity<ResponseBodyDTO> getMealHistory(@RequestBody String id, HttpServletRequest request, Authentication authentication){
-        //sprawdzamy, czy typ się nie podszywa i wysłane ID jest typa od którego przyszedł req
         UserDetails user = (UserDetails) authentication.getPrincipal();
         MealHistory mealHistory = mealHistoryService.findMealHistoryByUUID(UUID.fromString(id));
         if (mealHistory.getUserId().equals(((UserDetailsImpl) user).getId().longValue())){
             Map<String, MealHistoryResponse> data = new HashMap<>();
             MealHistoryResponse response = new MealHistoryResponse();
-            /*
-            * Wszystko jest git, więc zaczynamy wyciąganie.
-            * Mamy IDKI posiłków, więc na tej podstawie tworzymy tabelkę z posiłkami(tak jak w doku) - to nie, tabelkę tworzymy na froncie, plujemy nazwami.
-            * Następnie na podstawie ID posiłków tworzymy listę zakupów
-            * I chyba tyle
-            * */
             String ids = mealHistory.getMealsIds();
             List<Long> mealIds = Arrays.stream(ids.split(","))
                     .map(Long::parseLong)
@@ -278,6 +271,8 @@ public class MealRestController {
             response.setMealNames(mealNames);
             response.setMultiplier(mealHistory.getMultiplier());
             response.setMeals(getMealDTOList(mealIds));
+            List<IngredientToBuyDTO> ingredientToBuyDTOList = mealServiceImpl.getMealIngredientsFinalList(mealIds, mealHistory.getMultiplier());
+            response.setIngredientsToBuy(ingredientToBuyDTOList);
             data.put("mealHistory", response);
             return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.OK, data, HttpStatus.OK);
         }else{
@@ -285,7 +280,6 @@ public class MealRestController {
         }
     }
 
-    //TODO zerknąć na lepszy sposób niż jechanie przepisów w pętli
     private List<MealDTO> getMealDTOList(List<Long> mealIds) {
         List<MealDTO> mealDTOList = new ArrayList<>();
         for (Long mealId : mealIds) {
@@ -303,19 +297,7 @@ public class MealRestController {
                             .isDeleted(meal.isDeleted())
                     .build());
         }
-        System.out.println(mealDTOList);
         return mealDTOList;
-    }
-
-    private List<MealTypeDTO> setMealDTOTypes(List<MealType> mealTypes) {
-        List<MealTypeDTO> mealTypeDTOList = new ArrayList<>();
-        for (MealType mealType : mealTypes) {
-            mealTypeDTOList.add(MealTypeDTO.builder()
-                            .mealTypeEn(mealType.getMealTypeEn())
-                            .mealTypePl(mealType.getMealTypePl())
-                    .build());
-        }
-        return mealTypeDTOList;
     }
 
     private List<IngredientTDTO> setMealDTOIngredients(List<Ingredient> ingredients) {

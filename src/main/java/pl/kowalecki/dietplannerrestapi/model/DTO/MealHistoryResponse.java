@@ -2,6 +2,7 @@ package pl.kowalecki.dietplannerrestapi.model.DTO;
 
 
 import lombok.*;
+import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientToBuyDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.MealDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.MealHistoryDTO;
 
@@ -17,4 +18,5 @@ public class MealHistoryResponse {
     List<String> mealNames;
     Double multiplier;
     List<MealDTO> meals;
+    List<IngredientToBuyDTO> ingredientsToBuy;
 }
