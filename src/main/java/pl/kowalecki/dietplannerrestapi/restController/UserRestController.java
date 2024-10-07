@@ -12,7 +12,7 @@ import pl.kowalecki.dietplannerrestapi.services.UserDetailsImpl;
 import pl.kowalecki.dietplannerrestapi.services.UserDetailsServiceImpl;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/v1/users")
 @AllArgsConstructor
 public class UserRestController {
 

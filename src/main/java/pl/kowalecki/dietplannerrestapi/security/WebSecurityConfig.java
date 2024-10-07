@@ -52,11 +52,11 @@ public class WebSecurityConfig{
         http.authenticationProvider(daoAuthenticationProvider());
         http.addFilterBefore(authTokenFilter(), UsernamePasswordAuthenticationFilter.class);
         http.csrf(AbstractHttpConfigurer::disable)
-                .exceptionHandling(exception -> exception.defaultAuthenticationEntryPointFor(apiAuthEntryPoint, new AntPathRequestMatcher("/api/auth/**"))
+                .exceptionHandling(exception -> exception.defaultAuthenticationEntryPointFor(apiAuthEntryPoint, new AntPathRequestMatcher("/api/v1/**"))
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_USER")
-                        .requestMatchers("/api/login").permitAll()
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_USER")
+                        .requestMatchers("/api/v1/login").permitAll()
                                 .anyRequest().authenticated())
                 ;
 

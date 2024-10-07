@@ -15,7 +15,7 @@ import pl.kowalecki.dietplannerrestapi.services.UserDetailsImpl;
 import pl.kowalecki.dietplannerrestapi.services.UserDetailsServiceImpl;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
 
     @Autowired

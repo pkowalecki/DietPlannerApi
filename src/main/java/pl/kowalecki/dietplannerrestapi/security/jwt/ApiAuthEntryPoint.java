@@ -14,6 +14,7 @@ import pl.kowalecki.dietplannerrestapi.model.DTO.ResponseBodyDTO;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Enumeration;
 
 @Component
 @Slf4j
@@ -22,6 +23,16 @@ public class ApiAuthEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         log.error("Unauthorized " + authException.getMessage());
+        Enumeration<String> headerNames = request.getHeaderNames();
+
+        if (headerNames != null) {
+            while (headerNames.hasMoreElements()) {
+                String headerName = headerNames.nextElement();
+                String headerValue = request.getHeader(headerName);
+                System.out.println("hedery: " + headerName + ": " + headerValue);
+            }
+        }
+        System.out.println(response.getHeaderNames().stream());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         ResponseBodyDTO responseBodyDTO = ResponseBodyDTO.builder()

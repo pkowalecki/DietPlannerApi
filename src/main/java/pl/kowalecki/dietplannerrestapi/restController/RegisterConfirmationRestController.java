@@ -15,7 +15,7 @@ import pl.kowalecki.dietplannerrestapi.services.UserServiceImpl;
 import java.util.HashMap;
 import java.util.Map;
 
-@RequestMapping("/api")
+@RequestMapping("/api/v1")
 @RestController
 @AllArgsConstructor
 public class RegisterConfirmationRestController {
