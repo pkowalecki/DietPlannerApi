@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1/dpa")
 @AllArgsConstructor
 @Slf4j
 public class LoginRestController {
