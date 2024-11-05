@@ -6,20 +6,15 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.kowalecki.dietplannerrestapi.IngredientsListHelper;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.AddMealRequestDTO;
-import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientToBuyDTO;
-import pl.kowalecki.dietplannerrestapi.model.DTO.meal.MealDTO;
 import pl.kowalecki.dietplannerrestapi.model.Meal;
-import pl.kowalecki.dietplannerrestapi.model.User;
 import pl.kowalecki.dietplannerrestapi.model.enums.MealType;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.Ingredient;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientName;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientAmount.IngredientUnit;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement.MeasurementType;
 import pl.kowalecki.dietplannerrestapi.repository.IngredientNamesRepository;
-import pl.kowalecki.dietplannerrestapi.repository.IngredientRepository;
 import pl.kowalecki.dietplannerrestapi.repository.MealRepository;
-import pl.kowalecki.dietplannerrestapi.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -31,7 +26,6 @@ public class MealServiceImpl implements MealService{
 
     private final MealRepository mealRepository;
     private final IngredientNamesRepository ingredientNamesRepository;
-    private final UserRepository userRepository;
 
     @Override
     public List<Meal> getAllMeals(){
@@ -59,7 +53,7 @@ public class MealServiceImpl implements MealService{
     @Override
     @Transactional
     public void addMeal(Integer userId, AddMealRequestDTO mealRequest) throws Exception{
-        User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
+//        User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
             Meal meal = new Meal();
             if (mealRequest.getIngredients() == null) {
                 meal.setIngredients(new ArrayList<>());
@@ -92,11 +86,7 @@ public class MealServiceImpl implements MealService{
                         return ingredient;
                     }).collect(Collectors.toList());
             meal.setIngredients(ingredients);
-
-            user.getMealList().add(meal);
-
             mealRepository.save(meal);
-            userRepository.save(user);
     }
 
     public List<Ingredient> getMealIngredientsByMealId(Long mealId){
