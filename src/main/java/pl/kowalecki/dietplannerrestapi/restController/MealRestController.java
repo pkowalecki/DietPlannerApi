@@ -18,6 +18,7 @@ import pl.kowalecki.dietplannerrestapi.model.MealHistory;
 import pl.kowalecki.dietplannerrestapi.model.enums.MealType;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.Ingredient;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientName;
+import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientsToBuy;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientAmount.IngredientUnit;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement.MeasurementType;
 import pl.kowalecki.dietplannerrestapi.repository.MealRepository;
@@ -82,7 +83,7 @@ public ResponseEntity<ResponseBodyDTO> generateFoodBoard(@RequestBody FoodBoardP
     Map<String, List<?>> responseData = new HashMap<>();
     try {
         List<Meal> mealList = mealRepository.findMealsByMealIdIn(foodBoardPageDTO.getMealIds());
-        List<IngredientToBuyDTO> ingredientToBuyDTOList = mealServiceImpl.getMealIngredientsFinalList(foodBoardPageDTO.getMealIds(), foodBoardPageDTO.getMultiplier());
+        List<IngredientsToBuy> ingredientToBuyDTOList = mealServiceImpl.getMealIngredientsFinalList(foodBoardPageDTO.getMealIds(), foodBoardPageDTO.getMultiplier());
         responseData.put("mealList", mealList);
         responseData.put("ingredientToBuyDTOList", ingredientToBuyDTOList);
 
@@ -232,7 +233,7 @@ public ResponseEntity<ResponseBodyDTO> getMealHistory(HttpServletRequest request
 public ResponseEntity<ResponseBodyDTO> getMealHistory(@RequestBody String id, HttpServletRequest request) {
 //        UserDetails user = (UserDetails) authentication.getPrincipal();
     MealHistory mealHistory = mealHistoryService.findMealHistoryByUUID(UUID.fromString(id));
-    if (mealHistory.getUserId().equals(12)) {
+    if (mealHistory.getUserId().equals(2)) {
         Map<String, MealHistoryResponse> data = new HashMap<>();
         MealHistoryResponse response = new MealHistoryResponse();
         String ids = mealHistory.getMealsIds();
@@ -243,7 +244,7 @@ public ResponseEntity<ResponseBodyDTO> getMealHistory(@RequestBody String id, Ht
         response.setMealNames(mealNames);
         response.setMultiplier(mealHistory.getMultiplier());
         response.setMeals(getMealDTOList(mealIds));
-        List<IngredientToBuyDTO> ingredientToBuyDTOList = mealServiceImpl.getMealIngredientsFinalList(mealIds, mealHistory.getMultiplier());
+        List<IngredientsToBuy> ingredientToBuyDTOList = mealServiceImpl.getMealIngredientsFinalList(mealIds, mealHistory.getMultiplier());
         response.setIngredientsToBuy(ingredientToBuyDTOList);
         data.put("mealHistory", response);
         return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.OK, data, HttpStatus.OK);

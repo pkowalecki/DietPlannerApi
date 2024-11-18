@@ -11,6 +11,7 @@ import pl.kowalecki.dietplannerrestapi.model.Meal;
 import pl.kowalecki.dietplannerrestapi.model.enums.MealType;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.Ingredient;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientName;
+import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientsToBuy;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientAmount.IngredientUnit;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement.MeasurementType;
 import pl.kowalecki.dietplannerrestapi.repository.IngredientNamesRepository;
@@ -108,7 +109,8 @@ public class MealServiceImpl implements MealService{
         return map;
     }
 
-    public List<IngredientToBuyDTO> getMealIngredientsFinalList(List<Long> ids, Double multiplier) {
+    public List<IngredientsToBuy> getMealIngredientsFinalList(List<Long> ids, Double multiplier) {
+        IngredientsListHelper helper = new IngredientsListHelper();
         List<Ingredient> combinedIngredients = new ArrayList<>();
 
         for (Long id : ids) {
@@ -116,17 +118,7 @@ public class MealServiceImpl implements MealService{
             List<Ingredient> ingredients = getMealIngredientsByMealId(id);
             combinedIngredients.addAll(ingredients);
         }
-        List<Ingredient> ingredients = IngredientsListHelper.prepareIngredientsList(combinedIngredients, multiplier);
-
-        List<IngredientToBuyDTO> ingredientsToBuy = new ArrayList<>();
-
-        for (Ingredient ingredient : ingredients){
-            IngredientToBuyDTO ingredientDTO = new IngredientToBuyDTO(ingredient.getIngredientNameId().getName(), ingredient.getIngredientAmount().toString(), ingredient.getIngredientUnit().getShortName(), ingredient.getMeasurementValue().toString(), ingredient.getMeasurementType().getMeasurementName().toString());
-            ingredientsToBuy.add(ingredientDTO);
-        }
-
-
-        return ingredientsToBuy;
+        return helper.generateShoppingList(combinedIngredients, multiplier);
     }
     public Map<IngredientUnit, List<String>> getIngredientUnitMap(){
         Map<IngredientUnit, List<String>> ingredientListMap = IngredientUnit.getIngredientUnitMap();

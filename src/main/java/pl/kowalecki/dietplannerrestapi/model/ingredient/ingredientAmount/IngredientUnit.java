@@ -7,8 +7,9 @@ import java.util.Map;
 
 public enum IngredientUnit {
     GRAM("gram", "g"),
+    KILOGRAM("kilogramów", "kg"),
     MILILITR("mililitrów", "ml"),
-    KILOGRAM("kilogramów", "kg");
+    LITR("litrów", "l");
 
     String fullName;
     String shortName;
