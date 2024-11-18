@@ -6,19 +6,16 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.kowalecki.dietplannerrestapi.IngredientsListHelper;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.AddMealRequestDTO;
-import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientToBuyDTO;
 import pl.kowalecki.dietplannerrestapi.model.Meal;
-import pl.kowalecki.dietplannerrestapi.model.User;
 import pl.kowalecki.dietplannerrestapi.model.enums.MealType;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.Ingredient;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientName;
+import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientsToBuy;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientAmount.IngredientUnit;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement.MeasurementType;
 import pl.kowalecki.dietplannerrestapi.repository.IngredientNamesRepository;
-import pl.kowalecki.dietplannerrestapi.repository.IngredientRepository;
 import pl.kowalecki.dietplannerrestapi.repository.MealRepository;
-import pl.kowalecki.dietplannerrestapi.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -30,7 +27,6 @@ public class MealServiceImpl implements MealService{
 
     private final MealRepository mealRepository;
     private final IngredientNamesRepository ingredientNamesRepository;
-    private final UserRepository userRepository;
 
     @Override
     public List<Meal> getAllMeals(){
@@ -58,7 +54,7 @@ public class MealServiceImpl implements MealService{
     @Override
     @Transactional
     public void addMeal(Integer userId, AddMealRequestDTO mealRequest) throws Exception{
-        User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
+//        User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
             Meal meal = new Meal();
             if (mealRequest.getIngredients() == null) {
                 meal.setIngredients(new ArrayList<>());
@@ -91,11 +87,7 @@ public class MealServiceImpl implements MealService{
                         return ingredient;
                     }).collect(Collectors.toList());
             meal.setIngredients(ingredients);
-
-            user.getMealList().add(meal);
-
             mealRepository.save(meal);
-            userRepository.save(user);
     }
 
     public List<Ingredient> getMealIngredientsByMealId(Long mealId){
@@ -117,7 +109,8 @@ public class MealServiceImpl implements MealService{
         return map;
     }
 
-    public List<IngredientToBuyDTO> getMealIngredientsFinalList(List<Long> ids, Double multiplier) {
+    public List<IngredientsToBuy> getMealIngredientsFinalList(List<Long> ids, Double multiplier) {
+        IngredientsListHelper helper = new IngredientsListHelper();
         List<Ingredient> combinedIngredients = new ArrayList<>();
 
         for (Long id : ids) {
@@ -125,17 +118,7 @@ public class MealServiceImpl implements MealService{
             List<Ingredient> ingredients = getMealIngredientsByMealId(id);
             combinedIngredients.addAll(ingredients);
         }
-        List<Ingredient> ingredients = IngredientsListHelper.prepareIngredientsList(combinedIngredients, multiplier);
-
-        List<IngredientToBuyDTO> ingredientsToBuy = new ArrayList<>();
-
-        for (Ingredient ingredient : ingredients){
-            IngredientToBuyDTO ingredientDTO = new IngredientToBuyDTO(ingredient.getIngredientNameId().getName(), ingredient.getIngredientAmount().toString(), ingredient.getIngredientUnit().getShortName(), ingredient.getMeasurementValue().toString(), ingredient.getMeasurementType().getMeasurementName().toString());
-            ingredientsToBuy.add(ingredientDTO);
-        }
-
-
-        return ingredientsToBuy;
+        return helper.generateShoppingList(combinedIngredients, multiplier);
     }
     public Map<IngredientUnit, List<String>> getIngredientUnitMap(){
         Map<IngredientUnit, List<String>> ingredientListMap = IngredientUnit.getIngredientUnitMap();
@@ -151,6 +134,10 @@ public class MealServiceImpl implements MealService{
         return mealRepository.findMealsByUserId(userId);
     }
 
+    @Override
+    public List<Meal> findMealsByMealIdIn(List<Long> mealIds) {
+        return mealRepository.findMealsByMealIdIn(mealIds);
+    }
 
     public List<String> getMealNamesByIdList(List<Long> list) {
         List<String> mealNames = new ArrayList<>();

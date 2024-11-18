@@ -16,6 +16,5 @@ public class FoodDTO {
     String name;
     String recipe;
     String description;
-
     List<Ingredient> ingredients;
 }

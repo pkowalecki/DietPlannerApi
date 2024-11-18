@@ -2,10 +2,7 @@ package pl.kowalecki.dietplannerrestapi.model.ingredient;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import pl.kowalecki.dietplannerrestapi.model.Meal;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientAmount.IngredientAmount;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientAmount.IngredientUnit;
@@ -13,6 +10,7 @@ import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement.In
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement.MeasurementType;
 
 
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 @Getter
@@ -21,6 +19,7 @@ import java.util.regex.Pattern;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "ingredients")
+@ToString
 public class Ingredient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
