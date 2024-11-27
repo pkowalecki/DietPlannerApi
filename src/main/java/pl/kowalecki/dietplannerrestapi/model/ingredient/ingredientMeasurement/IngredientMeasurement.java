@@ -30,7 +30,4 @@ public class IngredientMeasurement {
     public IngredientMeasurement() {
     }
 
-    public String getIngredientMeasurementAsString(){
-        return String.valueOf(value) + " " + measurementType.getMeasurementName();
-    }
 }

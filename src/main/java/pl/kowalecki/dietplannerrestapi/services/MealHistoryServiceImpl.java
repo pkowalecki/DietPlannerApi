@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.MealHistoryDTO;
-import pl.kowalecki.dietplannerrestapi.model.Meal;
 import pl.kowalecki.dietplannerrestapi.model.MealHistory;
 import pl.kowalecki.dietplannerrestapi.repository.MealHistoryRepository;
 
@@ -14,7 +13,7 @@ import java.util.UUID;
 
 @Service
 @AllArgsConstructor
-public class MealHistoryServiceImpl implements MealHistoryService {
+public class MealHistoryServiceImpl implements IMealHistoryService {
 
     @Autowired
     private MealHistoryRepository mealHistoryRepository;

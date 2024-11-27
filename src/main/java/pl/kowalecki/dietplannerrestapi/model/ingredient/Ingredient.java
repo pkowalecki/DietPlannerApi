@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 @Getter
 @Setter
 @Entity
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "ingredients")
@@ -36,11 +37,11 @@ public class Ingredient {
     private MeasurementType measurementType;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="id_ingredient_name")
+    @JoinColumn(name="id_ingredient_name", nullable=false)
     private IngredientName ingredientNameId;
 
     @ManyToOne
-    @JoinColumn(name = "meal_id")
+    @JoinColumn(name = "meal_id", nullable = false)
     @JsonBackReference
     private Meal meal;
 

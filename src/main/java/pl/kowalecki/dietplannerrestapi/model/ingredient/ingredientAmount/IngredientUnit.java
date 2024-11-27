@@ -1,39 +1,26 @@
 package pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientAmount;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Getter
+@AllArgsConstructor
 public enum IngredientUnit {
-    GRAM("gram", "g"),
-    KILOGRAM("kilogramów", "kg"),
-    MILILITR("mililitrów", "ml"),
-    LITR("litrów", "l");
+    GRAM(1,"gram", "EN[gram]", "g"),
+    KILOGRAM(2,"kilogramów", "EN[kilogramów]","kg"),
+    MILILITR(3,"mililitrów", "EN[mililitrów]","ml"),
+    LITR(4, "litrów", "EN[litrów]", "l");
 
-    String fullName;
-    String shortName;
+    private int id;
+    private String fullNamePL;
+    private String fullNameEN;
+    private String shortName;
 
-    IngredientUnit(String fullName, String shortName) {
-        this.fullName = fullName;
-        this.shortName = shortName;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    public String getShortName() {
-        return shortName;
-    }
-
-    public void setShortName(String shortName) {
-        this.shortName = shortName;
-    }
 
     public static IngredientUnit getByShortName(String shortName) {
         for (IngredientUnit ingredientUnit : values()) {
@@ -56,7 +43,7 @@ public enum IngredientUnit {
         for(IngredientUnit ingredientUnit : values()){
             List<String> ingredientValues = new ArrayList<>();
             if (!ingredientUnitMap.containsKey(ingredientUnit)) {
-                ingredientValues.add(ingredientUnit.getFullName());
+                ingredientValues.add(ingredientUnit.getFullNamePL());
                 ingredientValues.add(ingredientUnit.getShortName());
             }
             ingredientUnitMap.put(ingredientUnit, ingredientValues);

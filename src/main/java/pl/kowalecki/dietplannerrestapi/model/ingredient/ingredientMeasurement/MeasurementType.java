@@ -1,55 +1,42 @@
 package pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Getter
+@AllArgsConstructor
 public enum MeasurementType {
 
-    OPAKOWANIE("opakowanie"),
-    PORCJA("porcja"),
-    KOSTKA("kostka"),
-    LYZKA("łyżka"),
-    LYZECZKA("łyżeczka"),
-    PUSZKA("puszka"),
-    SZTUKA("sztuka"),
-    KROMKA("kromka"),
-    SZKLANKA("szklanka"),
-    SLOIK("słoik"),
-    GARSC("garść"),
-    PLASTER("plaster"),
-    SZCZYPTA("szczypta"),
-    ZABEK("ząbek")
-
-
-
-
+    OPAKOWANIE(1,"opakowanie",""),
+    PORCJA(2,"porcja",""),
+    KOSTKA(3,"kostka",""),
+    LYZKA(4,"łyżka",""),
+    LYZECZKA(5,"łyżeczka",""),
+    PUSZKA(6,"puszka",""),
+    SZTUKA(7, "sztuka",""),
+    KROMKA(8,"kromka",""),
+    SZKLANKA(9,"szklanka",""),
+    SLOIK(10,"słoik",""),
+    GARSC(11,"garść",""),
+    PLASTER(12,"plaster",""),
+    SZCZYPTA(13,"szczypta",""),
+    ZABEK(14, "ząbek","")
     ;
 
-    String name;
-    MeasurementType(String name){
-        this.name=name;
-    }
-    public String getMeasurementName(){
-        return name;
-    }
+    private int id;
+    private String namePL;
+    private String nameEN;
 
-    public static Map<MeasurementType, List<String>> getMeasurementTypeMap(){
-        Map<MeasurementType, List<String>> measurementTypeListHashMap = new HashMap<>();
-        for(MeasurementType measurementType : values()){
-            List<String> measurementTypes = new ArrayList<>();
-            if (!measurementTypeListHashMap.containsKey(measurementType)) {
-                measurementTypes.add(measurementType.getMeasurementName());
-            }
-            measurementTypeListHashMap.put(measurementType, measurementTypes);
-        }
-        return measurementTypeListHashMap;
-    }
 
     public static MeasurementType getMeasurementTypeByName(String name) {
         for (MeasurementType measurementType : values()) {
-            if (measurementType.getMeasurementName().equals(name)) return measurementType;
+            if (measurementType.getNamePL().equals(name)) return measurementType;
         }
         return null;
     }
