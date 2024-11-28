@@ -8,7 +8,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
-import pl.kowalecki.dietplannerrestapi.configuration.UserContextFilter;
 import pl.kowalecki.dietplannerrestapi.model.DTO.MealStarterPackDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.*;
 import pl.kowalecki.dietplannerrestapi.model.Meal;
@@ -48,13 +47,12 @@ public class MealRestController {
     }
 
     @PostMapping("/addMeal")
-    public ResponseEntity<Void> addMeal(@RequestBody AddMealRequestDTO newMeal, ServerWebExchange exchange) {
+    public ResponseEntity<Void> addMeal(@RequestBody AddMealRequestDTO newMeal, @RequestHeader("X-User-Id") String userId) {
         try {
-            String userId = UserContextFilter.getUserId(exchange);
-            if (userId == null) {
+            if (userId == null || userId.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
-            mealService.addMeal(Long.parseLong(userId), newMeal);
+            mealService.addMeal(Long.valueOf(userId), newMeal);
             return ResponseEntity.ok().build();
         } catch (EntityNotFoundException e) {
             log.error("Entity not found: {}", e.getMessage());
