@@ -1,6 +1,7 @@
 package pl.kowalecki.dietplannerrestapi.restController;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -47,7 +48,9 @@ public class MealRestController {
     }
 
     @PostMapping("/addMeal")
-    public ResponseEntity<Void> addMeal(@RequestBody AddMealRequestDTO newMeal, @RequestHeader("X-User-Id") String userId) {
+    public ResponseEntity<Void> addMeal
+            (@RequestBody @Valid AddMealRequestDTO newMeal,
+            @RequestHeader("X-User-Id") String userId) {
         try {
             if (userId == null || userId.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

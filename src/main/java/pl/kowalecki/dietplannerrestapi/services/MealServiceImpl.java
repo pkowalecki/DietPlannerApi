@@ -184,6 +184,7 @@ public class MealServiceImpl implements IMealService {
                 .recipe(mealRequest.getRecipe())
                 .notes(mealRequest.getNotes())
                 .userId(userId)
+                .portions(mealRequest.getPortions())
                 .build();
     }
 

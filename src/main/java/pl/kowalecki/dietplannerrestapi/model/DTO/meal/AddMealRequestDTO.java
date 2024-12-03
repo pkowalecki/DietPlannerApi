@@ -6,7 +6,6 @@ import java.util.List;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @ToString
 public class AddMealRequestDTO {
@@ -16,4 +15,5 @@ public class AddMealRequestDTO {
     private String notes;
     private List<IngredientDTO> ingredients;
     private List<String> mealTypes;
+    private Double portions;
 }

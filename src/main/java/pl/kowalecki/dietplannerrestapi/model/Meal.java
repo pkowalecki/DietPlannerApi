@@ -2,9 +2,7 @@ package pl.kowalecki.dietplannerrestapi.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.*;
 import pl.kowalecki.dietplannerrestapi.model.enums.MealType;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.Ingredient;
@@ -56,7 +54,13 @@ public class Meal implements Serializable {
     private List<MealType> mealTypes;
 
     private boolean isDeleted;
-    private long userId;
+
+    @NotNull(message = "User cannot be null")
+    private Long userId;
+
+    @DecimalMin(value = "0.0", inclusive = true, message = "Value should be greater than or equal to 0")
+    @DecimalMax(value = "1000.0", inclusive = true, message = "Value should be less than or equal to 1000")
+    private Double portions;
 
     @PrePersist
     protected void onCreate() {
@@ -83,6 +87,8 @@ public class Meal implements Serializable {
                 ", notes='" + notes + '\'' +
                 ", mealTypes=" + mealTypes +
                 ", isDeleted=" + isDeleted +
+                ", userId=" + userId +
+                ", portions=" + portions +
                 '}';
     }
 
