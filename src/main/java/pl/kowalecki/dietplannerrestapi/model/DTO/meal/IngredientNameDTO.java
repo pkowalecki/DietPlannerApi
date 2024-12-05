@@ -2,19 +2,17 @@ package pl.kowalecki.dietplannerrestapi.model.DTO.meal;
 
 import lombok.*;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-@ToString
-public class IngredientNameDTO {
 
-    private Long id;
-    private String ingredientName;
-    private String ingredientBrand;
-    private int protein;
-    private int carbohydrates;
-    private int fat;
-    private int kcal;
+@Builder
+public record IngredientNameDTO(
+        Long id,
+        String ingredientName,
+        String ingredientBrand,
+        double protein,
+        double carbohydrates,
+        double fat,
+        double kcal,
+        Long userId
+) {
+
 }

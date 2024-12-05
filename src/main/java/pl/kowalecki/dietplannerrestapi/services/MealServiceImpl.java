@@ -5,6 +5,7 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.kowalecki.dietplannerrestapi.IngredientsListHelper;
+import pl.kowalecki.dietplannerrestapi.mapper.IngredientNameMapper;
 import pl.kowalecki.dietplannerrestapi.model.DTO.MealStarterPackDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.*;
 import pl.kowalecki.dietplannerrestapi.model.Meal;
@@ -28,6 +29,7 @@ public class MealServiceImpl implements IMealService {
 
     private final MealRepository mealRepository;
     private final IngredientNamesRepository ingredientNamesRepository;
+    private final IngredientNameMapper ingredientNameMapper;
 
     @Override
     public List<Meal> getAllMeals() {
@@ -132,15 +134,7 @@ public class MealServiceImpl implements IMealService {
 
     public List<IngredientNameDTO> getMealIngredientNames() {
         return ingredientNamesRepository.findAll().stream()
-                .map(ingredient -> IngredientNameDTO.builder()
-                        .id(ingredient.getId())
-                        .ingredientName(ingredient.getName())
-                        .ingredientBrand(ingredient.getBrand())
-                        .carbohydrates(ingredient.getCarbohydrates())
-                        .fat(ingredient.getFat())
-                        .kcal(ingredient.getKcal())
-                        .protein(ingredient.getProtein())
-                        .build())
+                .map(ingredientNameMapper::ingredientNameDTO)
                 .collect(Collectors.toList());
     }
 

@@ -8,7 +8,5 @@ import java.util.List;
 public interface IngredientNamesService {
 
     List<IngredientNameDTO> searchByName(String name);
-    boolean existsByName(String name);
-
-    void addIngredientName(IngredientName newIngredientName);
+    void addIngredientName(Long userId, IngredientNameDTO newIngredientName);
 }

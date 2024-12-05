@@ -9,6 +9,7 @@ import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientNameDTO;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientName;
 import pl.kowalecki.dietplannerrestapi.services.IApiService;
 import pl.kowalecki.dietplannerrestapi.services.IngredientNamesService;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.List;
@@ -21,37 +22,23 @@ public class IngredientsController {
 
     @Autowired
     private IngredientNamesService ingredientService;
-    @Autowired
-    private IApiService apiService;
 
-    @GetMapping("/ingredientNames/search")
-    public ResponseEntity<ResponseBodyDTO> searchIngredients(@RequestParam("query") String query) {
-        List<IngredientNameDTO> ingredients = ingredientService.searchByName(query);
-        Map<String, List<IngredientNameDTO>> data = new HashMap<>();
-        data.put("ingredientNames", ingredients);
-        return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.OK, "", data, HttpStatus.OK);
-    }
+//    @GetMapping("/ingredientNames/search")
+//    public ResponseEntity<List<IngredientNameDTO>> searchIngredients(@RequestParam("query") String query) {
+//        List<IngredientNameDTO> ingredients = ingredientService.searchByName(query);
+//        return ResponseEntity.ok(ingredients);
+//    }
 
     @PostMapping("/ingredientNames/ingredient")
-    public ResponseEntity<ResponseBodyDTO> addIngredient(@RequestBody IngredientNameDTO newIngredientName) {
-        if (newIngredientName == null || newIngredientName.getIngredientName().isEmpty()) {
-            return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.OK, "", null, HttpStatus.NO_CONTENT);
+    public ResponseEntity<Void> addIngredient(
+            @RequestBody IngredientNameDTO newIngredientName,
+            @RequestHeader("X-User-Id") String userId
+    ) {
+        if (userId == null || userId.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        boolean ingredientExists = ingredientService.existsByName(newIngredientName.getIngredientName());
-        if(ingredientExists){
-            return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.ERROR, "Produkt o podanej nazwie już istnieje",  HttpStatus.CONFLICT);
-        }
-        IngredientName ingredientName = new IngredientName();
-        ingredientName.setName(newIngredientName.getIngredientName());
-        ingredientName.setBrand(newIngredientName.getIngredientBrand());
-        ingredientName.setProtein(newIngredientName.getProtein());
-        ingredientName.setCarbohydrates(newIngredientName.getCarbohydrates());
-        ingredientName.setFat(newIngredientName.getFat());
-        ingredientName.setKcal(newIngredientName.getKcal());
-        ingredientService.addIngredientName(ingredientName);
-        return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.OK,
-                "Produkt został dodany",
-                HttpStatus.CREATED);
+        ingredientService.addIngredientName(Long.valueOf(userId), newIngredientName);
+        return ResponseEntity.ok().build();
     }
 
 }
