@@ -139,12 +139,12 @@ public class MealServiceImpl implements IMealService {
     }
 
 
-    private List<MealType> mapMealTypes(List<String> mealTypes) {
+    private List<MealType> mapMealTypes(List<Integer> mealTypes) {
         if (mealTypes == null || mealTypes.isEmpty()) {
             return Collections.emptyList();
         }
         return mealTypes.stream()
-                .map(MealType::getFromMealTypePl)
+                .map(MealType::getMealTypeById)
                 .collect(Collectors.toList());
     }
 

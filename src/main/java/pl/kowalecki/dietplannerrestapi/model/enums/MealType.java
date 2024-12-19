@@ -23,7 +23,7 @@ public enum MealType {
     private String mealTypeEn;
 
 
-    public static MealType getById(int id) {
+    public static MealType getMealTypeById(int id) {
         for (MealType mealType : values()) {
             if (mealType.id == id) {
                 return mealType;
