@@ -13,5 +13,5 @@ import java.util.List;
 public interface IngredientNamesRepository extends JpaRepository<IngredientName, Long> {
 
     List<IngredientName> findByNameContainingIgnoreCase(String name);
-    boolean existsByName(String name);
+    boolean existsByNameAndBrand(String name, String brand);
 }

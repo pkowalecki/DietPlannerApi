@@ -17,9 +17,9 @@ class IngredientsListHelperTest {
     @Test
     void finalIngredientListShouldReturnGoodValues(){
         Meal meal = new Meal();
-        IngredientName ingredientName1 = new IngredientName(0L, "Masło", "Marka", 0, 0, 0,0);
-        IngredientName ingredientName2 = new IngredientName(1L, "Masło", "Marka", 0, 0, 0,0);
-        IngredientName ingredientName3 = new IngredientName(2L, "Pomidor", "Marka", 0, 0, 0,0);
+        IngredientName ingredientName1 = new IngredientName(0L, "Masło", "Marka", 0, 0, 0,0, 1L);
+        IngredientName ingredientName2 = new IngredientName(1L, "Masło", "Marka", 0, 0, 0,0,1L);
+        IngredientName ingredientName3 = new IngredientName(2L, "Pomidor", "Marka", 0, 0, 0,0,1L);
 
         Ingredient ingredient1 =  new Ingredient(1L,3.8,IngredientUnit.GRAM,1.3,MeasurementType.LYZECZKA,
                 ingredientName1,
@@ -43,10 +43,10 @@ class IngredientsListHelperTest {
     @Test
     void testShoppingList(){
         Meal meal = new Meal();
-        IngredientName ingredientName1 = new IngredientName(0L, "Masło", "Mlekowida", 0, 0, 0,0);
-        IngredientName ingredientName2 = new IngredientName(1L, "Masło", "Osełkowe", 0, 0, 0,0);
-        IngredientName ingredientName3 = new IngredientName(2L, "Pomidor", "Kiść", 0, 0, 0,0);
-        IngredientName ingredientName4 = new IngredientName(3L, "Pomidor", "Kiść", 0, 0, 0,0);
+        IngredientName ingredientName1 = new IngredientName(0L, "Masło", "Mlekowida", 0, 0, 0,0,1L);
+        IngredientName ingredientName2 = new IngredientName(1L, "Masło", "Osełkowe", 0, 0, 0,0,1L);
+        IngredientName ingredientName3 = new IngredientName(2L, "Pomidor", "Kiść", 0, 0, 0,0,1L);
+        IngredientName ingredientName4 = new IngredientName(3L, "Pomidor", "Kiść", 0, 0, 0,0,1L);
 
         Ingredient ingredient1 = new Ingredient(1L, 50.0, IngredientUnit.GRAM, 1.0, MeasurementType.SZTUKA, ingredientName1, meal);
         Ingredient ingredient2 = new Ingredient(2L, 50.0, IngredientUnit.GRAM, 1.0, MeasurementType.SZTUKA, ingredientName2, meal);
