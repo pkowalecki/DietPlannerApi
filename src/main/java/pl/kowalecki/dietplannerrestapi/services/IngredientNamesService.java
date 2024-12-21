@@ -1,7 +1,6 @@
 package pl.kowalecki.dietplannerrestapi.services;
 
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientNameDTO;
-import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientName;
 
 import java.util.List;
 

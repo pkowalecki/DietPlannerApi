@@ -1,8 +1,9 @@
 package pl.kowalecki.dietplannerrestapi.services;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import pl.kowalecki.dietplannerrestapi.exception.ObjectAlreadyExistsException;
 import pl.kowalecki.dietplannerrestapi.mapper.IngredientNameMapper;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientNameDTO;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientName;
@@ -19,9 +20,9 @@ public class IngredientNamesServiceImpl implements IngredientNamesService {
     IngredientNameMapper ingredientNameMapper;
 
 
-    @Override
     public List<IngredientNameDTO> searchByName(String name) {
-        List<IngredientName> ingredientNames = ingredientNamesRepository.findByNameContainingIgnoreCase(name);
+        Pageable pageable = PageRequest.of(0, 20);
+        List<IngredientName> ingredientNames = ingredientNamesRepository.findByNameContainingIgnoreCase(name, pageable);
         return ingredientNames.stream()
                 .map(ingredientNameMapper::ingredientNameDTOExcludedId)
                 .collect(Collectors.toList());
@@ -30,11 +31,17 @@ public class IngredientNamesServiceImpl implements IngredientNamesService {
     @Override
     public void addIngredientName(Long userId, IngredientNameDTO ingredientNameDTO) {
         IngredientName ingredientName = buildIngredientName(userId, ingredientNameDTO);
-        if (ingredientNamesRepository.existsByNameAndBrand(ingredientName.getName(), ingredientName.getBrand())) {
-            throw new ObjectAlreadyExistsException(
-                    "Object found with name: " + ingredientName.getName() + " and brand: " + ingredientName.getBrand()
-            );
-        }ingredientNamesRepository.save(ingredientName);
+        IngredientName existingIngredientName = ingredientNamesRepository.findIngredientNameByNameAndBrand(ingredientName.getName(), ingredientName.getBrand());
+        if (existingIngredientName!=null) {
+            existingIngredientName.setProtein(ingredientName.getProtein());
+            existingIngredientName.setCarbohydrates(ingredientName.getCarbohydrates());
+            existingIngredientName.setFat(ingredientName.getFat());
+            existingIngredientName.setKcal(ingredientName.getKcal());
+            ingredientNamesRepository.save(existingIngredientName);
+        }else{
+            ingredientNamesRepository.save(ingredientName);
+        }
+
     }
 
     private IngredientName buildIngredientName(Long userId, IngredientNameDTO ingredientNameDTO) {
