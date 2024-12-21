@@ -1,19 +1,16 @@
 package pl.kowalecki.dietplannerrestapi.restController;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.kowalecki.dietplannerrestapi.model.DTO.ResponseBodyDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientNameDTO;
-import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientName;
-import pl.kowalecki.dietplannerrestapi.services.IApiService;
-import pl.kowalecki.dietplannerrestapi.services.IngredientNamesService;
-import reactor.core.publisher.Mono;
 
-import java.util.HashMap;
+import pl.kowalecki.dietplannerrestapi.services.IngredientNamesService;
+
 import java.util.List;
-import java.util.Map;
+
 
 @RestController
 @RequestMapping("/ingredient")
@@ -23,11 +20,11 @@ public class IngredientsController {
     @Autowired
     private IngredientNamesService ingredientService;
 
-//    @GetMapping("/ingredientNames/search")
-//    public ResponseEntity<List<IngredientNameDTO>> searchIngredients(@RequestParam("query") String query) {
-//        List<IngredientNameDTO> ingredients = ingredientService.searchByName(query);
-//        return ResponseEntity.ok(ingredients);
-//    }
+    @GetMapping("/ingredientNames/search")
+    public ResponseEntity<List<IngredientNameDTO>> searchIngredients(@RequestParam("query") String query) {
+        List<IngredientNameDTO> ingredients = ingredientService.searchByName(query);
+        return ResponseEntity.ok(ingredients);
+    }
 
     @PostMapping("/ingredientNames/ingredient")
     public ResponseEntity<Void> addIngredient(
