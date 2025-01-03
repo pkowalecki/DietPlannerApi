@@ -1,13 +1,8 @@
 package pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import pl.kowalecki.dietplannerrestapi.exception.MeasurementTypeNotFoundException;
 
 @Getter
 @AllArgsConstructor
@@ -38,7 +33,14 @@ public enum MeasurementType {
         for (MeasurementType measurementType : values()) {
             if (measurementType.getNamePL().equals(name)) return measurementType;
         }
-        return null;
+        throw new MeasurementTypeNotFoundException("Measurement with name " + name + " not found");
+    }
+
+    public static MeasurementType getById(int id) {
+        for (MeasurementType measurementType : values()) {
+            if (measurementType.getId() == id) return measurementType;
+        }
+        throw new MeasurementTypeNotFoundException("Measurement with id " + id + " not found");
     }
 
 

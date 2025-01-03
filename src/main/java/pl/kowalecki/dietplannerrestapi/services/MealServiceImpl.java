@@ -21,8 +21,6 @@ import pl.kowalecki.dietplannerrestapi.repository.MealRepository;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static pl.kowalecki.dietplannerrestapi.model.DTO.meal.MealTypeDTO.buildMealTypeList;
-
 @Service
 @AllArgsConstructor
 public class MealServiceImpl implements IMealService {
@@ -163,9 +161,9 @@ public class MealServiceImpl implements IMealService {
 
         return Ingredient.builder()
                 .ingredientAmount(ingredientDTO.getIngredientAmount())
-                .ingredientUnit(IngredientUnit.getByShortName(ingredientDTO.getIngredientUnit()))
+                .ingredientUnit(IngredientUnit.getById(Integer.parseInt(ingredientDTO.getIngredientUnit())))
                 .measurementValue(ingredientDTO.getMeasurementValue())
-                .measurementType(MeasurementType.getMeasurementTypeByName(ingredientDTO.getMeasurementType()))
+                .measurementType(MeasurementType.getById(Integer.parseInt(ingredientDTO.getMeasurementType())))
                 .ingredientNameId(ingredientName)
                 .meal(meal)
                 .build();

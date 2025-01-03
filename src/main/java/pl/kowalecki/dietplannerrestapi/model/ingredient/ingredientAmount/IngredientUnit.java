@@ -2,6 +2,7 @@ package pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientAmount;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import pl.kowalecki.dietplannerrestapi.exception.IngredientUnitNotFoundException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,7 +27,14 @@ public enum IngredientUnit {
         for (IngredientUnit ingredientUnit : values()) {
             if (ingredientUnit.getShortName().equals(shortName)) return ingredientUnit;
         }
-        return null;
+        throw new IngredientUnitNotFoundException("Ingredient Unit with name: "+ shortName +" not found!");
+    }
+
+    public static IngredientUnit getById(int id) {
+        for (IngredientUnit ingredientUnit : values()) {
+            if (ingredientUnit.getId() == id) return ingredientUnit;
+        }
+        throw new IngredientUnitNotFoundException("Ingredient Unit with id: "+ id +" not found!");
     }
 
     public static List<String> getAllIngredientNames(){

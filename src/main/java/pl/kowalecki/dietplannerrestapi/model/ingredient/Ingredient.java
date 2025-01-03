@@ -2,6 +2,7 @@ package pl.kowalecki.dietplannerrestapi.model.ingredient;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import pl.kowalecki.dietplannerrestapi.model.Meal;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientAmount.IngredientAmount;
@@ -10,7 +11,6 @@ import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement.In
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement.MeasurementType;
 
 
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 @Getter
@@ -29,11 +29,13 @@ public class Ingredient {
     private Double ingredientAmount;
 
     @Enumerated(EnumType.STRING)
+    @NotNull
     private IngredientUnit ingredientUnit;
 
     private Double measurementValue;
 
     @Enumerated(EnumType.STRING)
+    @NotNull
     private MeasurementType measurementType;
 
     @ManyToOne(fetch = FetchType.EAGER)
