@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ServerWebExchange;
 import pl.kowalecki.dietplannerrestapi.model.DTO.MealStarterPackDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.*;
 import pl.kowalecki.dietplannerrestapi.model.Meal;
@@ -28,8 +27,12 @@ public class MealRestController {
     private final IMealHistoryService IMealHistoryService;
 
     @GetMapping("/allMeal")
-    public ResponseEntity<List<Meal>> getListMeal() {
-        List<Meal> mealList = mealService.getAllMeals();
+    public ResponseEntity<List<MealView>> getListMeal(@RequestHeader("X-User-Id") String userId) {
+        if (userId == null || userId.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        List<MealView> mealList = mealService.getAllMealsByUserId(Long.valueOf(userId));
         return ResponseEntity.status(HttpStatus.OK).body(mealList);
     }
 
