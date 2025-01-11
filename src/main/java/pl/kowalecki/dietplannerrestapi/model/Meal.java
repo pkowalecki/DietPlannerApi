@@ -18,7 +18,9 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "meals")
+@Table(name = "meals", indexes = {
+        @Index(name = "idx_user_id", columnList = "user_id")
+})
 public class Meal implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

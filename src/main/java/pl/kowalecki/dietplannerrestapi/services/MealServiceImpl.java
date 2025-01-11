@@ -17,6 +17,7 @@ import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientAmount.Ingredi
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement.MeasurementType;
 import pl.kowalecki.dietplannerrestapi.repository.IngredientNamesRepository;
 import pl.kowalecki.dietplannerrestapi.repository.MealRepository;
+import pl.kowalecki.dietplannerrestapi.repository.MealViewRepository;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -26,12 +27,19 @@ import java.util.stream.Collectors;
 public class MealServiceImpl implements IMealService {
 
     private final MealRepository mealRepository;
+    private final MealViewRepository mealViewRepository;
     private final IngredientNamesRepository ingredientNamesRepository;
     private final IngredientNameMapper ingredientNameMapper;
 
     @Override
     public List<Meal> getAllMeals() {
         return mealRepository.findAll();
+    }
+
+    @Override
+    public List<MealView> getAllMealsByUserId(Long userId) {
+        List<MealView> mealNames = mealViewRepository.findAllByUserId(userId);
+        return mealNames;
     }
 
     @Override
@@ -95,6 +103,7 @@ public class MealServiceImpl implements IMealService {
         return map;
     }
 
+    @Override
     public List<IngredientsToBuy> getMealIngredientsFinalList(List<Long> ids, Double multiplier) {
         IngredientsListHelper helper = new IngredientsListHelper();
         List<Ingredient> combinedIngredients = new ArrayList<>();
@@ -107,20 +116,15 @@ public class MealServiceImpl implements IMealService {
         return helper.generateShoppingList(combinedIngredients, multiplier);
     }
 
-
-    @Override
-    public List<Meal> getMealByUserId(Long userId) {
-        return mealRepository.findMealsByUserId(userId);
-    }
-
     @Override
     public List<Meal> findMealsByMealIdIn(List<Long> mealIds) {
         return mealRepository.findMealsByMealIdIn(mealIds);
     }
 
-    public List<String> getMealNamesByIdList(List<Long> list) {
+    @Override
+    public List<String> getMealNamesByIdList(List<Long> mealIds) {
         List<String> mealNames = new ArrayList<>();
-        for (Long mealId : list) {
+        for (Long mealId : mealIds) {
             if (mealId == 0) {
                 mealNames.add("-");
                 continue;
