@@ -103,6 +103,7 @@ public class MealServiceImpl implements IMealService {
         return map;
     }
 
+    @Override
     public List<IngredientsToBuy> getMealIngredientsFinalList(List<Long> ids, Double multiplier) {
         IngredientsListHelper helper = new IngredientsListHelper();
         List<Ingredient> combinedIngredients = new ArrayList<>();
@@ -120,9 +121,10 @@ public class MealServiceImpl implements IMealService {
         return mealRepository.findMealsByMealIdIn(mealIds);
     }
 
-    public List<String> getMealNamesByIdList(List<Long> list) {
+    @Override
+    public List<String> getMealNamesByIdList(List<Long> mealIds) {
         List<String> mealNames = new ArrayList<>();
-        for (Long mealId : list) {
+        for (Long mealId : mealIds) {
             if (mealId == 0) {
                 mealNames.add("-");
                 continue;

@@ -99,6 +99,7 @@ public class IngredientsListHelper {
                     ingredient.setIngredientAmount(ingredient.getIngredientAmount() * multiplier);
                     ingredient.getMeasurementList().forEach(m -> m.setMeasurementAmount(m.getMeasurementAmount() * multiplier));
                 })
+                .sorted(Comparator.comparing(IngredientsToBuy::getName))
                 .collect(Collectors.toList());
     }
 

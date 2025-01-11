@@ -1,6 +1,7 @@
 package pl.kowalecki.dietplannerrestapi.restController;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,9 +9,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.kowalecki.dietplannerrestapi.exception.GenerateMealBoardException;
+import pl.kowalecki.dietplannerrestapi.exception.MealsNotFoundException;
+import pl.kowalecki.dietplannerrestapi.model.DTO.FoodBoardPageDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.MealStarterPackDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.*;
 import pl.kowalecki.dietplannerrestapi.model.Meal;
+import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientsToBuy;
 import pl.kowalecki.dietplannerrestapi.services.IMealHistoryService;
 import pl.kowalecki.dietplannerrestapi.services.IMealService;
 
@@ -53,7 +58,7 @@ public class MealRestController {
     @PostMapping("/addMeal")
     public ResponseEntity<Void> addMeal
             (@RequestBody @Valid AddMealRequestDTO newMeal,
-            @RequestHeader("X-User-Id") String userId) {
+             @RequestHeader("X-User-Id") String userId) {
         try {
             if (userId == null || userId.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -69,27 +74,11 @@ public class MealRestController {
         }
     }
 
-//@PostMapping("/generateFoodBoard")
-//public ResponseEntity<ResponseBodyDTO> generateFoodBoard(@RequestBody FoodBoardPageDTO foodBoardPageDTO, HttpServletRequest request) {
-//    Map<String, List<?>> responseData = new HashMap<>();
-//    try {
-//        List<Meal> mealList = mealRepository.findMealsByMealIdIn(foodBoardPageDTO.getMealIds());
-//        List<IngredientsToBuy> ingredientToBuyDTOList = mealServiceImpl.getMealIngredientsFinalList(foodBoardPageDTO.getMealIds(), foodBoardPageDTO.getMultiplier());
-//        responseData.put("mealList", mealList);
-//        responseData.put("ingredientToBuyDTOList", ingredientToBuyDTOList);
-//
-//    } catch (Exception e) {
-//        ResponseBodyDTO responseBodyDTO = ResponseBodyDTO.builder()
-//                .status(ResponseBodyDTO.ResponseStatus.ERROR)
-//                .message("Meal not created")
-//                .build();
-//        log.error("generateFoodBoard: {}", e.getMessage());
-//        e.printStackTrace();
-//        return new ResponseEntity<>(responseBodyDTO, HttpStatus.OK);
-//    }
-//
-//
-//    MealHistory mealHistory = MealHistory.builder()
+    @PostMapping("/generateFoodBoard")
+    public ResponseEntity<List<IngredientsToBuy>> generateFoodBoard(@RequestBody FoodBoardPageDTO foodBoardPageDTO, HttpServletRequest request) {
+        try {
+            List<IngredientsToBuy> ingredientToBuyDTOList = mealService.getMealIngredientsFinalList(foodBoardPageDTO.getMealIds(), foodBoardPageDTO.getMultiplier());
+            //    MealHistory mealHistory = MealHistory.builder()
 //            .userId(Long.valueOf(12))
 //            .public_id(UUID.randomUUID())
 //            .mealsIds(foodBoardPageDTO.getMealIds().stream().map(String::valueOf).collect(Collectors.joining(",")))
@@ -97,14 +86,16 @@ public class MealRestController {
 //            .multiplier(foodBoardPageDTO.getMultiplier())
 //            .build();
 //    mealHistoryService.saveMealHistory(mealHistory);
-//
-//    ResponseBodyDTO responseBodyDTO = ResponseBodyDTO.builder()
-//            .status(ResponseBodyDTO.ResponseStatus.OK)
-//            .data(responseData)
-//            .build();
-//    return new ResponseEntity<>(responseBodyDTO, HttpStatus.OK);
-//}
-//    @PostMapping("/generateFoodRecipe")
+
+            return ResponseEntity.ok(ingredientToBuyDTOList);
+        } catch (Exception e) {
+            log.error("generateFoodBoard: {}", e.getMessage());
+            throw new GenerateMealBoardException("generateFoodBoard: " + e.getMessage());
+        }
+
+    }
+
+    //    @PostMapping("/generateFoodRecipe")
 //    public ResponseEntity<List<FoodDTO>> generateFoodRecipe(@RequestParam("ids") String ids, @RequestParam("multiplier") Double multiplier) {
 //        List<Long> idsList = Arrays.stream(ids.split(","))
 //                .map(Long::parseLong)
@@ -137,11 +128,12 @@ public class MealRestController {
 //
     @GetMapping(value = "/getMealStarterPack", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<MealStarterPackDTO> getMealStarterPack() {
-            MealStarterPackDTO mealStarterPackDTO = mealService.buildStarterPack();
-            return ResponseEntity.ok().body(mealStarterPackDTO);
+        MealStarterPackDTO mealStarterPackDTO = mealService.buildStarterPack();
+        return ResponseEntity.ok().body(mealStarterPackDTO);
 
     }
-//
+
+    //
 //    @GetMapping(value = "/ingredients", produces = MediaType.APPLICATION_JSON_VALUE)
 //    public ResponseEntity<ResponseBodyDTO> getIngredients() {
 //        try {
@@ -171,24 +163,16 @@ public class MealRestController {
 //                .body(errorResponse);
 //    }
 //
-//    @PostMapping(value = "/getMealNamesById")
-//    public ResponseEntity<ResponseBodyDTO> getMealNamesById(@RequestBody List<Long> mealIds) {
-//        Map<String, List<String>> responseData = new HashMap<>();
-//        try {
-//            List<String> mealNames = mealServiceImpl.getMealNamesByIdList(mealIds);
-//            if (!mealNames.isEmpty()) {
-//                responseData.put("mealNames", mealNames);
-//                ResponseBodyDTO responseBodyDTO = ResponseBodyDTO.builder()
-//                        .status(ResponseBodyDTO.ResponseStatus.OK)
-//                        .data(responseData)
-//                        .build();
-//                return ResponseEntity.ok().body(responseBodyDTO);
-//            }
-//            return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.OK, "No data", responseData, HttpStatus.OK);
-//        } catch (Exception e) {
-//            return apiService.returnResponseData(ResponseBodyDTO.ResponseStatus.ERROR, "No data", responseData, HttpStatus.OK);
-//        }
-//    }
+    @PostMapping(value = "/getMealNamesById")
+    public ResponseEntity<List<String>> getMealNamesById(@RequestBody List<Long> mealIds) {
+        try {
+            List<String> mealNames = mealService.getMealNamesByIdList(mealIds);
+            return ResponseEntity.ok().body(mealNames);
+        } catch (Exception e) {
+            log.error("getMealNamesById: {}", e.getMessage());
+            throw new MealsNotFoundException("mealsNotFound");
+        }
+    }
 //
 //    @GetMapping(value = "/getMealHistory")
 //    public ResponseEntity<ResponseBodyDTO> getMealHistory(HttpServletRequest request) {
