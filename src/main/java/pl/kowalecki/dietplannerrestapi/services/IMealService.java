@@ -1,12 +1,12 @@
 package pl.kowalecki.dietplannerrestapi.services;
 
-
-
+import org.springframework.data.domain.Page;
 import pl.kowalecki.dietplannerrestapi.model.DTO.MealStarterPackDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.AddMealRequestDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.MealView;
 import pl.kowalecki.dietplannerrestapi.model.Meal;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientsToBuy;
+import pl.kowalecki.dietplannerrestapi.model.projection.MealProjection;
 
 import java.util.List;
 
@@ -21,4 +21,6 @@ public interface IMealService {
     MealStarterPackDTO buildStarterPack();
     List<IngredientsToBuy> getMealIngredientsFinalList(List<Long> ids, Double multiplier);
     List<String> getMealNamesByIdList(List<Long> mealIds);
+    Page<MealProjection> findAllByUserId(Long userId, int page, int size);
+    Page<MealProjection> findAllByUserIdAndMealType(Long userId, String mealType, int page, int size);
 }
