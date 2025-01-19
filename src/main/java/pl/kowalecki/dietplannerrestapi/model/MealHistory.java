@@ -13,7 +13,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @ToString
 @Entity
-@Table(name = "meal_history")
+@Table(name = "meal_history", indexes = {
+        @Index(name = "idx_public_id", columnList = "public_id")
+})
 public class MealHistory {
 
     @Id
