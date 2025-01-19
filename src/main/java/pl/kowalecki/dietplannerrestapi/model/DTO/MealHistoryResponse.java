@@ -18,6 +18,5 @@ import java.util.List;
 public class MealHistoryResponse {
     List<String> mealNames;
     Double multiplier;
-    List<MealDTO> meals;
     List<IngredientsToBuy> ingredientsToBuy;
 }

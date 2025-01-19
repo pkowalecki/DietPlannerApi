@@ -46,7 +46,7 @@ public class MealHistoryServiceImpl implements IMealHistoryService {
     }
 
     @Override
-    public MealHistory findMealHistoryByUUID(UUID id) {
-        return mealHistoryRepository.findByUUID(id);
+    public MealHistory findMealHistoryByUUID(UUID id, Long userId) {
+        return mealHistoryRepository.findMealHistoryByPublicIdAndUserId(id, userId);
     }
 }

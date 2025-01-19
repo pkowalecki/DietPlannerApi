@@ -12,5 +12,5 @@ public interface IMealHistoryService {
 
     List<MealHistoryDTO> findMealHistoriesByUserId(Long userId);
 
-    MealHistory findMealHistoryByUUID(UUID id);
+    MealHistory findMealHistoryByUUID(UUID id, Long userId);
 }
