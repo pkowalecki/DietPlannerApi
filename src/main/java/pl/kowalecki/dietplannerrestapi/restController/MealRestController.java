@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,7 @@ import pl.kowalecki.dietplannerrestapi.model.DTO.meal.*;
 import pl.kowalecki.dietplannerrestapi.model.Meal;
 import pl.kowalecki.dietplannerrestapi.model.MealHistory;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientsToBuy;
+import pl.kowalecki.dietplannerrestapi.model.projection.MealProjection;
 import pl.kowalecki.dietplannerrestapi.services.IMealHistoryService;
 import pl.kowalecki.dietplannerrestapi.services.IMealService;
 import pl.kowalecki.dietplannerrestapi.services.MealServiceImpl;
@@ -47,11 +49,26 @@ public class MealRestController {
         return ResponseEntity.status(HttpStatus.OK).body(mealList);
     }
 
-    @GetMapping(value = "/getMeal/{id}")
-    public ResponseEntity<Meal> getMealById(@PathVariable Long id) {
-        if (mealService.getMealById(id) != null)
-            return new ResponseEntity<>(mealService.getMealById(id), HttpStatus.OK);
-        else return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    @GetMapping("/getMealsData")
+    public ResponseEntity<Page<MealProjection>> getMeals(
+            @RequestHeader("X-User-Id") String userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "all") String mealType) {
+
+        if (userId == null || userId.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Page<MealProjection> meals;
+
+        if ("all".equalsIgnoreCase(mealType)) {
+            meals = mealService.findAllByUserId(Long.valueOf(userId), page, size);
+        } else {
+            meals = mealService.findAllByUserIdAndMealType(Long.valueOf(userId), mealType, page, size);
+        }
+
+        return ResponseEntity.ok(meals);
     }
 
     //FIXME nie usuwamy, a ukrywamy ustawiając flagę isDeleted = true;

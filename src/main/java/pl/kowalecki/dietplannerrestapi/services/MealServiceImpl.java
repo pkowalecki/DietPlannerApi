@@ -3,6 +3,9 @@ package pl.kowalecki.dietplannerrestapi.services;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pl.kowalecki.dietplannerrestapi.IngredientsListHelper;
 import pl.kowalecki.dietplannerrestapi.mapper.IngredientNameMapper;
@@ -15,6 +18,7 @@ import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientName;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientsToBuy;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientAmount.IngredientUnit;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement.MeasurementType;
+import pl.kowalecki.dietplannerrestapi.model.projection.MealProjection;
 import pl.kowalecki.dietplannerrestapi.repository.IngredientNamesRepository;
 import pl.kowalecki.dietplannerrestapi.repository.MealRepository;
 import pl.kowalecki.dietplannerrestapi.repository.MealViewRepository;
@@ -49,6 +53,26 @@ public class MealServiceImpl implements IMealService {
     }
 
     @Override
+    public Page<MealProjection> findAllByUserIdAndMealType(Long userId, String mealType, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        try {
+            MealType type = MealType.valueOf(mealType.toUpperCase());
+            return mealRepository.findAllByUserIdAndMealTypes(userId, type, pageable);
+        } catch (IllegalArgumentException e) {
+            return Page.empty(pageable);
+        }
+    }
+
+
+    @Override
+    public Page<MealProjection> findAllByUserId(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return mealRepository.findAllByUserId(userId, pageable);
+    }
+
+
+    @Override
     @Transactional
     public void deleteMealById(Long id) {
         if (!mealRepository.existsById(id)) {
@@ -81,7 +105,6 @@ public class MealServiceImpl implements IMealService {
                 .mealTypeList(mealTypeList)
                 .build();
     }
-
 
 
     public List<Ingredient> getMealIngredientsByMealId(Long mealId) {
