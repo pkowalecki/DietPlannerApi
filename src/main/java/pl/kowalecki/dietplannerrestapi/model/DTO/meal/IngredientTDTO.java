@@ -14,8 +14,8 @@ import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement.Me
 public class IngredientTDTO {
     private IngredientNameDTO name;
     private Double ingredientAmount;
-    private IngredientUnit ingredientUnit;
+    private IngredientUnitDTO ingredientUnit;
     private Double measurementValue;
-    private MeasurementType measurementType;
+    private MeasurementTypeDTO measurementType;
     private Long ingredientNameId;
 }

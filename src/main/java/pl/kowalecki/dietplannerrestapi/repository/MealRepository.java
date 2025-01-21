@@ -27,5 +27,10 @@ public interface MealRepository extends JpaRepository<Meal, Long> {
     Page<MealProjection> findAllByUserIdAndMealTypes(@Param("userId") Long userId, @Param("mealType") MealType mealType, Pageable pageable);
 
 
+    @Query("SELECT m FROM Meal m LEFT JOIN FETCH m.ingredients WHERE m.mealId = :id AND m.userId = :userId")
+    Meal getMealByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
+
+
+
 
 }
