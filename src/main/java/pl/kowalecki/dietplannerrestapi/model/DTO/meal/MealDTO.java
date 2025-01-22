@@ -22,5 +22,6 @@ public class MealDTO {
     private List<IngredientTDTO> ingredients;
     private String notes;
     private List<MealTypeDTO> mealTypes;
+    private Double portions;
     private boolean isDeleted;
 }
