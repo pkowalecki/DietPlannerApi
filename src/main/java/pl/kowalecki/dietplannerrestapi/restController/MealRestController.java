@@ -16,7 +16,6 @@ import pl.kowalecki.dietplannerrestapi.model.DTO.FoodBoardPageDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.MealHistoryResponse;
 import pl.kowalecki.dietplannerrestapi.model.DTO.MealStarterPackDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.*;
-import pl.kowalecki.dietplannerrestapi.model.Meal;
 import pl.kowalecki.dietplannerrestapi.model.MealHistory;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientsToBuy;
 import pl.kowalecki.dietplannerrestapi.model.projection.MealProjection;
@@ -168,6 +167,12 @@ public class MealRestController {
                 .ingredientsToBuy(ingredientToBuyDTOList)
                 .build();
         return ResponseEntity.ok(mealHistoryResponse);
+    }
+
+    @GetMapping(value = "/getMealDetails/{id}")
+    public ResponseEntity<MealDTO> getMealDetails(@RequestHeader("X-User-Id") String userId,
+                                                              @PathVariable Long id){
+            return ResponseEntity.ok(mealService.getMealDetailsByMealAndUserId(id, Long.valueOf(userId)));
     }
 
 

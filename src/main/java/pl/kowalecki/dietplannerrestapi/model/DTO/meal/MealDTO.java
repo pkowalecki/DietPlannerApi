@@ -13,7 +13,7 @@ import java.util.List;
 @ToString
 @Builder
 public class MealDTO {
-//    private Long mealId;
+    private Long mealId;
     private LocalDateTime additionDate;
     private LocalDateTime editDate;
     private String name;
@@ -21,6 +21,7 @@ public class MealDTO {
     private String recipe;
     private List<IngredientTDTO> ingredients;
     private String notes;
-    private List<MealType> mealTypes;
+    private List<MealTypeDTO> mealTypes;
+    private Double portions;
     private boolean isDeleted;
 }

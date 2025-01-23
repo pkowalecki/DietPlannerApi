@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pl.kowalecki.dietplannerrestapi.IngredientsListHelper;
 import pl.kowalecki.dietplannerrestapi.mapper.IngredientNameMapper;
+import pl.kowalecki.dietplannerrestapi.mapper.MealMapper;
 import pl.kowalecki.dietplannerrestapi.model.DTO.MealStarterPackDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.*;
 import pl.kowalecki.dietplannerrestapi.model.Meal;
@@ -34,6 +35,7 @@ public class MealServiceImpl implements IMealService {
     private final MealViewRepository mealViewRepository;
     private final IngredientNamesRepository ingredientNamesRepository;
     private final IngredientNameMapper ingredientNameMapper;
+    private final MealMapper mealMapper;
 
     @Override
     public List<Meal> getAllMeals() {
@@ -207,4 +209,9 @@ public class MealServiceImpl implements IMealService {
                 .build();
     }
 
+    @Override
+    public MealDTO getMealDetailsByMealAndUserId(Long id, Long userId) {
+        Meal meal = mealRepository.getMealByIdAndUserId(id, userId);
+        return mealMapper.mealToMealDTO(meal);
+    }
 }
