@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pl.kowalecki.dietplannerrestapi.IngredientsListHelper;
+import pl.kowalecki.dietplannerrestapi.exception.MealsNotFoundException;
 import pl.kowalecki.dietplannerrestapi.mapper.IngredientNameMapper;
 import pl.kowalecki.dietplannerrestapi.mapper.MealMapper;
 import pl.kowalecki.dietplannerrestapi.model.DTO.MealStarterPackDTO;
@@ -24,6 +25,7 @@ import pl.kowalecki.dietplannerrestapi.repository.IngredientNamesRepository;
 import pl.kowalecki.dietplannerrestapi.repository.MealRepository;
 import pl.kowalecki.dietplannerrestapi.repository.MealViewRepository;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -85,13 +87,38 @@ public class MealServiceImpl implements IMealService {
 
     @Override
     @Transactional
-    public void addMeal(Long userId, AddMealRequestDTO mealRequest) {
-        Meal meal = buildMeal(userId, mealRequest);
+    public void addOrUpdateMeal(Long userId, AddMealRequestDTO mealRequest) {
+
+        Long mealId = mealRequest.getMealId();
+        Meal meal;
+        if (mealId!=null && mealId!=-1){
+            meal = mealRepository.findMealByMealIdAndUserId(mealId, userId)
+                    .orElseThrow(() -> new EntityNotFoundException("Meal not found or access denied"));
+        }else{
+            meal = new Meal();
+            meal.setUserId(userId);
+        }
+
+        updateMealData(meal, mealRequest);
+
+        mealRepository.save(meal);
+    }
+
+    private void updateMealData(Meal meal, AddMealRequestDTO mealRequest) {
+        meal.setName(mealRequest.getMealName());
+        meal.setDescription(mealRequest.getDescription());
+        meal.setRecipe(mealRequest.getRecipe());
+        meal.setNotes(mealRequest.getNotes());
+        meal.setPortions(mealRequest.getPortions());
+
+        meal.getIngredients().clear();
+        meal.getMealTypes().clear();
+
         List<Ingredient> ingredients = buildIngredients(mealRequest.getIngredients(), meal);
         List<MealType> mealTypes = mapMealTypes(mealRequest.getMealTypes());
+
         meal.setIngredients(ingredients);
         meal.setMealTypes(mealTypes);
-        mealRepository.save(meal);
     }
 
     @Override
@@ -211,7 +238,7 @@ public class MealServiceImpl implements IMealService {
 
     @Override
     public MealDTO getMealDetailsByMealAndUserId(Long id, Long userId) {
-        Meal meal = mealRepository.getMealByIdAndUserId(id, userId);
+        Meal meal = mealRepository.getMealByIdAndUserId(id, userId).orElseThrow(()-> new MealsNotFoundException("Meal not found!"));
         return mealMapper.mealToMealDTO(meal);
     }
 }

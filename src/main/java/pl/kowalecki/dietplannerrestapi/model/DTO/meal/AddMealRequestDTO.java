@@ -9,6 +9,7 @@ import java.util.List;
 @AllArgsConstructor
 @ToString
 public class AddMealRequestDTO {
+    private Long mealId;
     private String mealName;
     private String description;
     private String recipe;
