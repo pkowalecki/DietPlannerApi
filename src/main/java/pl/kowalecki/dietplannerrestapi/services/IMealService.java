@@ -17,7 +17,7 @@ public interface IMealService {
     List<MealView> getAllMealsByUserId(Long userId);
     Meal getMealById(Long id);
     void deleteMealById(Long id);
-    void addMeal(Long userId, AddMealRequestDTO newMeal);
+    void addOrUpdateMeal(Long userId, AddMealRequestDTO newMeal);
     List<Meal> findMealsByMealIdIn(List<Long> mealIds);
     MealStarterPackDTO buildStarterPack();
     List<IngredientsToBuy> getMealIngredientsFinalList(List<Long> ids, Double multiplier);

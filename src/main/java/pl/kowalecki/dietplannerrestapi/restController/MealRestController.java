@@ -77,15 +77,15 @@ public class MealRestController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping("/addMeal")
+    @PostMapping("/addOrUpdateMeal")
     public ResponseEntity<Void> addMeal
-            (@RequestBody @Valid AddMealRequestDTO newMeal,
+            (@RequestBody @Valid AddMealRequestDTO meal,
              @RequestHeader("X-User-Id") String userId) {
         try {
             if (userId == null || userId.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
-            mealService.addMeal(Long.valueOf(userId), newMeal);
+            mealService.addOrUpdateMeal(Long.valueOf(userId), meal);
             return ResponseEntity.ok().build();
         } catch (EntityNotFoundException e) {
             log.error("Entity not found: {}", e.getMessage());

@@ -42,7 +42,7 @@ public class Meal implements Serializable {
     @Size(min = 5, max = 10000, message = "Recipe should be between 5-10000")
     private String recipe;
 
-    @OneToMany(mappedBy = "meal", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "meal", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Ingredient> ingredients;
 
@@ -69,12 +69,6 @@ public class Meal implements Serializable {
         additionDate = LocalDateTime.now();
         isDeleted = false;
     }
-
-    @PreUpdate
-    protected void onUpdate() {
-        editDate = LocalDateTime.now();
-    }
-
 
     @Override
     public String toString() {

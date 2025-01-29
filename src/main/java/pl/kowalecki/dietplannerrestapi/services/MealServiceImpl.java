@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pl.kowalecki.dietplannerrestapi.IngredientsListHelper;
+import pl.kowalecki.dietplannerrestapi.exception.MealsNotFoundException;
 import pl.kowalecki.dietplannerrestapi.mapper.IngredientNameMapper;
 import pl.kowalecki.dietplannerrestapi.mapper.MealMapper;
 import pl.kowalecki.dietplannerrestapi.model.DTO.MealStarterPackDTO;
@@ -24,6 +25,7 @@ import pl.kowalecki.dietplannerrestapi.repository.IngredientNamesRepository;
 import pl.kowalecki.dietplannerrestapi.repository.MealRepository;
 import pl.kowalecki.dietplannerrestapi.repository.MealViewRepository;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -85,13 +87,43 @@ public class MealServiceImpl implements IMealService {
 
     @Override
     @Transactional
-    public void addMeal(Long userId, AddMealRequestDTO mealRequest) {
-        Meal meal = buildMeal(userId, mealRequest);
-        List<Ingredient> ingredients = buildIngredients(mealRequest.getIngredients(), meal);
-        List<MealType> mealTypes = mapMealTypes(mealRequest.getMealTypes());
-        meal.setIngredients(ingredients);
-        meal.setMealTypes(mealTypes);
+    public void addOrUpdateMeal(Long userId, AddMealRequestDTO mealRequest) {
+
+        Long mealId = mealRequest.getMealId();
+        Meal meal;
+        if (mealId!=null && mealId!=-1){
+            meal = mealRepository.findMealByMealIdAndUserId(mealId, userId)
+                    .orElseThrow(() -> new EntityNotFoundException("Meal not found or access denied"));
+            meal.setEditDate(LocalDateTime.now());
+        }else{
+            meal = new Meal();
+            meal.setUserId(userId);
+        }
+
+        updateMealData(meal, mealRequest);
+
         mealRepository.save(meal);
+    }
+
+    private void updateMealData(Meal meal, AddMealRequestDTO mealRequest) {
+        meal.setName(mealRequest.getMealName());
+        meal.setDescription(mealRequest.getDescription());
+        meal.setRecipe(mealRequest.getRecipe());
+        meal.setNotes(mealRequest.getNotes());
+        meal.setPortions(mealRequest.getPortions());
+
+
+        meal.getIngredients().clear();
+        if (mealRequest.getIngredients() != null && !mealRequest.getIngredients().isEmpty()) {
+            List<Ingredient> ingredients = buildIngredients(mealRequest.getIngredients(), meal);
+            meal.getIngredients().addAll(ingredients);
+        }
+
+        meal.getMealTypes().clear();
+        if (mealRequest.getMealTypes() != null && !mealRequest.getMealTypes().isEmpty()) {
+            List<MealType> mealTypes = mapMealTypes(mealRequest.getMealTypes());
+            meal.getMealTypes().addAll(mealTypes);
+        }
     }
 
     @Override
@@ -168,7 +200,7 @@ public class MealServiceImpl implements IMealService {
 
     private List<MealType> mapMealTypes(List<Integer> mealTypes) {
         if (mealTypes == null || mealTypes.isEmpty()) {
-            return Collections.emptyList();
+            throw new IllegalArgumentException("Meal types cannot be empty!");
         }
         return mealTypes.stream()
                 .map(MealType::getMealTypeById)
@@ -177,7 +209,7 @@ public class MealServiceImpl implements IMealService {
 
     private List<Ingredient> buildIngredients(List<IngredientDTO> ingredients, Meal meal) {
         if (ingredients == null || ingredients.isEmpty()) {
-            return Collections.emptyList();
+            throw new IllegalArgumentException("Ingredients cannot be empty!");
         }
         return ingredients.stream()
                 .map(dto -> buildIngredient(dto, meal))
@@ -211,7 +243,7 @@ public class MealServiceImpl implements IMealService {
 
     @Override
     public MealDTO getMealDetailsByMealAndUserId(Long id, Long userId) {
-        Meal meal = mealRepository.getMealByIdAndUserId(id, userId);
+        Meal meal = mealRepository.getMealByIdAndUserId(id, userId).orElseThrow(()-> new MealsNotFoundException("Meal not found!"));
         return mealMapper.mealToMealDTO(meal);
     }
 }

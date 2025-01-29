@@ -10,6 +10,7 @@ import pl.kowalecki.dietplannerrestapi.model.enums.MealType;
 import pl.kowalecki.dietplannerrestapi.model.projection.MealProjection;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MealRepository extends JpaRepository<Meal, Long> {
 
@@ -28,7 +29,9 @@ public interface MealRepository extends JpaRepository<Meal, Long> {
 
 
     @Query("SELECT m FROM Meal m LEFT JOIN FETCH m.ingredients WHERE m.mealId = :id AND m.userId = :userId")
-    Meal getMealByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
+    Optional<Meal> getMealByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
+
+    Optional<Meal> findMealByMealIdAndUserId(Long mealId, Long userId);
 
 
 
