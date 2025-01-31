@@ -246,4 +246,11 @@ public class MealServiceImpl implements IMealService {
         Meal meal = mealRepository.getMealByIdAndUserId(id, userId).orElseThrow(()-> new MealsNotFoundException("Meal not found!"));
         return mealMapper.mealToMealDTO(meal);
     }
+
+    @Override
+    public Page<MealProjection> findAllByNameAndUserId(String name, Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return mealRepository.findMealByNameContainingIgnoreCaseAndUserId(name, userId, pageable);
+
+    }
 }
