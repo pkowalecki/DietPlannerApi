@@ -113,16 +113,16 @@ public class MealServiceImpl implements IMealService {
         meal.setPortions(mealRequest.getPortions());
 
 
-        meal.getIngredients().clear();
+        if (meal.getIngredients() !=null && !meal.getIngredients().isEmpty())meal.getIngredients().clear();
         if (mealRequest.getIngredients() != null && !mealRequest.getIngredients().isEmpty()) {
             List<Ingredient> ingredients = buildIngredients(mealRequest.getIngredients(), meal);
-            meal.getIngredients().addAll(ingredients);
+            meal.setIngredients(ingredients);
         }
 
-        meal.getMealTypes().clear();
+        if (meal.getMealTypes()!=null && !meal.getMealTypes().isEmpty()) meal.getMealTypes().clear();
         if (mealRequest.getMealTypes() != null && !mealRequest.getMealTypes().isEmpty()) {
             List<MealType> mealTypes = mapMealTypes(mealRequest.getMealTypes());
-            meal.getMealTypes().addAll(mealTypes);
+            meal.setMealTypes(mealTypes);
         }
     }
 
