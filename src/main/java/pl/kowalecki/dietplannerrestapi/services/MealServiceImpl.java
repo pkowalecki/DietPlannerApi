@@ -59,8 +59,10 @@ public class MealServiceImpl implements IMealService {
     @Override
     public Page<MealProjection> findAllByUserIdAndMealType(Long userId, String mealType, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-
         try {
+            if(mealType.equals("private")){
+                return mealRepository.findAllByUserId(userId, pageable);
+            }
             MealType type = MealType.valueOf(mealType.toUpperCase());
             return mealRepository.findAllByUserIdAndMealTypes(userId, type, pageable);
         } catch (IllegalArgumentException e) {
