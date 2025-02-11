@@ -250,8 +250,8 @@ public class MealServiceImpl implements IMealService {
     }
 
     @Override
-    public Page<MealProjection> findAllByNameAndUserId(String name, Long userId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+    public Page<MealProjection> findAllByNameAndUserId(String name, Long userId) {
+        Pageable pageable = PageRequest.of(0, 10);
         return mealRepository.findMealByNameContainingIgnoreCaseAndUserId(name, userId, pageable);
 
     }

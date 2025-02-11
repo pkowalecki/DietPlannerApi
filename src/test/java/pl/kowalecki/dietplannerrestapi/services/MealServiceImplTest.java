@@ -41,7 +41,7 @@ class MealServiceImplTest {
         when(mealRepository.findMealByNameContainingIgnoreCaseAndUserId(query, userId, pageable))
                 .thenReturn(pageResult);
 
-        Page<MealProjection> result = mealService.findAllByNameAndUserId(query, userId, page, size);
+        Page<MealProjection> result = mealService.findAllByNameAndUserId(query, userId);
         assertFalse(result.isEmpty());
         assertEquals(1, result.getTotalElements());
     }
