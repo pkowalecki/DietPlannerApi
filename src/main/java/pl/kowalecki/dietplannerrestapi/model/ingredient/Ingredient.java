@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 @NoArgsConstructor
 @Table(name = "ingredients")
 @ToString
+@EqualsAndHashCode(exclude = "meal")
 public class Ingredient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

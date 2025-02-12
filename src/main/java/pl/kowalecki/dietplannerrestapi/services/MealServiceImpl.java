@@ -101,9 +101,7 @@ public class MealServiceImpl implements IMealService {
             meal = new Meal();
             meal.setUserId(userId);
         }
-
         updateMealData(meal, mealRequest);
-
         mealRepository.save(meal);
     }
 
@@ -113,19 +111,50 @@ public class MealServiceImpl implements IMealService {
         meal.setRecipe(mealRequest.getRecipe());
         meal.setNotes(mealRequest.getNotes());
         meal.setPortions(mealRequest.getPortions());
+        updateIngredients(meal, mealRequest.getIngredients());
+        updateMealTypes(meal, mealRequest.getMealTypes());
+    }
 
-
-        if (meal.getIngredients() !=null && !meal.getIngredients().isEmpty())meal.getIngredients().clear();
-        if (mealRequest.getIngredients() != null && !mealRequest.getIngredients().isEmpty()) {
-            List<Ingredient> ingredients = buildIngredients(mealRequest.getIngredients(), meal);
-            meal.setIngredients(ingredients);
+    private void updateMealTypes(Meal meal, List<Integer> mealTypesRequest) {
+        if(meal.getMealId() == null || meal.getMealId() == -1){
+            meal.setMealTypes(mapMealTypes(mealTypesRequest));
+        }else{
+            meal.getMealTypes().clear();
+            meal.setMealTypes(mapMealTypes(mealTypesRequest));
         }
+    }
 
-        if (meal.getMealTypes()!=null && !meal.getMealTypes().isEmpty()) meal.getMealTypes().clear();
-        if (mealRequest.getMealTypes() != null && !mealRequest.getMealTypes().isEmpty()) {
-            List<MealType> mealTypes = mapMealTypes(mealRequest.getMealTypes());
-            meal.setMealTypes(mealTypes);
+    private void updateIngredients(Meal meal, List<IngredientDTO> ingredientsRequest) {
+        if (meal.getIngredients() == null) {
+            meal.setIngredients(new ArrayList<>());
         }
+        Map<Long, Ingredient> existingIngredients = meal.getIngredients().stream()
+                .collect(Collectors.toMap(ing -> ing.getIngredientNameId().getId(), ing -> ing));
+
+        List<Ingredient> updatedIngredients = new ArrayList<>();
+        if (ingredientsRequest != null && !ingredientsRequest.isEmpty()) {
+            for (IngredientDTO dto : ingredientsRequest) {
+                IngredientName ingredientName = ingredientNamesRepository.findById(dto.getIngredientNameId())
+                        .orElseThrow(() -> new EntityNotFoundException("Ingredient not found with id: " + dto.getIngredientNameId()));
+
+                if (existingIngredients.containsKey(ingredientName.getId())) {
+                    Ingredient existingIngredient = existingIngredients.get(ingredientName.getId());
+
+                    if (!existingIngredient.equals(buildIngredient(dto, meal))) {
+
+                        existingIngredient.setIngredientAmount(dto.getIngredientAmount());
+                        existingIngredient.setIngredientUnit(IngredientUnit.getById(Integer.parseInt(dto.getIngredientUnit())));
+                        existingIngredient.setMeasurementValue(dto.getMeasurementValue());
+                        existingIngredient.setMeasurementType(MeasurementType.getById(Integer.parseInt(dto.getMeasurementType())));
+                    }
+                    updatedIngredients.add(existingIngredient);
+                } else {
+                    updatedIngredients.add(buildIngredient(dto, meal));
+                }
+            }
+        }
+        meal.getIngredients().clear();
+        meal.getIngredients().addAll(updatedIngredients);
     }
 
     @Override
