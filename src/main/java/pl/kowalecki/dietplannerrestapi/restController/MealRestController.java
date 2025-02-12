@@ -175,5 +175,13 @@ public class MealRestController {
             return ResponseEntity.ok(mealService.getMealDetailsByMealAndUserId(id, Long.valueOf(userId)));
     }
 
+    @GetMapping("/searchMealsByName")
+    public ResponseEntity<List<MealProjection>> searchIngredients(
+            @RequestHeader("X-User-Id") String userId,
+            @RequestParam("query") String query) {
+
+        Page<MealProjection> meals = mealService.findAllByNameAndUserId(query, Long.valueOf(userId));
+        return ResponseEntity.ok(meals.getContent());
+    }
 
 }

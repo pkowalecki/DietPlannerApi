@@ -33,7 +33,6 @@ public interface MealRepository extends JpaRepository<Meal, Long> {
 
     Optional<Meal> findMealByMealIdAndUserId(Long mealId, Long userId);
 
-
-
+    Page<MealProjection> findMealByNameContainingIgnoreCaseAndUserId(@Param("mealName") String mealName, Long userId, Pageable pageable);
 
 }

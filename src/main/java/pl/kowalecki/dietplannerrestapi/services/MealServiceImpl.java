@@ -59,8 +59,10 @@ public class MealServiceImpl implements IMealService {
     @Override
     public Page<MealProjection> findAllByUserIdAndMealType(Long userId, String mealType, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-
         try {
+            if(mealType.equals("private")){
+                return mealRepository.findAllByUserId(userId, pageable);
+            }
             MealType type = MealType.valueOf(mealType.toUpperCase());
             return mealRepository.findAllByUserIdAndMealTypes(userId, type, pageable);
         } catch (IllegalArgumentException e) {
@@ -113,16 +115,16 @@ public class MealServiceImpl implements IMealService {
         meal.setPortions(mealRequest.getPortions());
 
 
-        meal.getIngredients().clear();
+        if (meal.getIngredients() !=null && !meal.getIngredients().isEmpty())meal.getIngredients().clear();
         if (mealRequest.getIngredients() != null && !mealRequest.getIngredients().isEmpty()) {
             List<Ingredient> ingredients = buildIngredients(mealRequest.getIngredients(), meal);
-            meal.getIngredients().addAll(ingredients);
+            meal.setIngredients(ingredients);
         }
 
-        meal.getMealTypes().clear();
+        if (meal.getMealTypes()!=null && !meal.getMealTypes().isEmpty()) meal.getMealTypes().clear();
         if (mealRequest.getMealTypes() != null && !mealRequest.getMealTypes().isEmpty()) {
             List<MealType> mealTypes = mapMealTypes(mealRequest.getMealTypes());
-            meal.getMealTypes().addAll(mealTypes);
+            meal.setMealTypes(mealTypes);
         }
     }
 
@@ -245,5 +247,12 @@ public class MealServiceImpl implements IMealService {
     public MealDTO getMealDetailsByMealAndUserId(Long id, Long userId) {
         Meal meal = mealRepository.getMealByIdAndUserId(id, userId).orElseThrow(()-> new MealsNotFoundException("Meal not found!"));
         return mealMapper.mealToMealDTO(meal);
+    }
+
+    @Override
+    public Page<MealProjection> findAllByNameAndUserId(String name, Long userId) {
+        Pageable pageable = PageRequest.of(0, 10);
+        return mealRepository.findMealByNameContainingIgnoreCaseAndUserId(name, userId, pageable);
+
     }
 }
