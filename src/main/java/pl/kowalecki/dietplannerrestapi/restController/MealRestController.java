@@ -15,6 +15,7 @@ import pl.kowalecki.dietplannerrestapi.exception.MealsNotFoundException;
 import pl.kowalecki.dietplannerrestapi.model.DTO.FoodBoardPageDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.MealHistoryResponse;
 import pl.kowalecki.dietplannerrestapi.model.DTO.MealStarterPackDTO;
+import pl.kowalecki.dietplannerrestapi.model.DTO.ShoppingList;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.*;
 import pl.kowalecki.dietplannerrestapi.model.MealHistory;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientsToBuy;
@@ -96,14 +97,22 @@ public class MealRestController {
         }
     }
 
-    @PostMapping("/generateFoodBoard")
-    public ResponseEntity<List<IngredientsToBuy>> generateFoodBoard(@RequestHeader("X-User-Id") String userId, @RequestBody FoodBoardPageDTO foodBoardPageDTO, HttpServletRequest request) {
-        try {
-            if (userId == null || userId.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-            List<IngredientsToBuy> ingredientToBuyDTOList = mealService.getMealIngredientsFinalList(foodBoardPageDTO.getMealIds(), foodBoardPageDTO.getMultiplier());
+    @PostMapping("/getShoppingListData")
+    public ResponseEntity<ShoppingList> generateShoppingList(@RequestHeader("X-User-Id") String userId, @RequestBody String pageId){
+        MealHistory mealHistory = mealHistoryService.findMealHistoryByUUID(UUID.fromString(pageId), Long.valueOf(userId));
+        List<Long> mealIds = Arrays.stream(mealHistory.getMealsIds().split(","))
+                .map(Long::valueOf)
+                .collect(Collectors.toList());
+        List<IngredientsToBuy> ingredientToBuyDTOList =
+                mealService.getMealIngredientsFinalList(mealIds, mealHistory.getMultiplier());
+        ShoppingList shoppingList = new ShoppingList(mealIds, ingredientToBuyDTOList);
 
+        return ResponseEntity.ok(shoppingList);
+    }
+
+    @PostMapping("/generateFoodBoard")
+    public ResponseEntity<String> generateFoodBoard(@RequestHeader("X-User-Id") String userId, @RequestBody FoodBoardPageDTO foodBoardPageDTO, HttpServletRequest request) {
+        try {
             MealHistory mealHistory = MealHistory.builder()
                     .userId(Long.valueOf(userId))
                     .public_id(UUID.randomUUID())
@@ -113,12 +122,11 @@ public class MealRestController {
                     .build();
             mealHistoryService.saveMealHistory(mealHistory);
 
-            return ResponseEntity.ok(ingredientToBuyDTOList);
+            return ResponseEntity.ok(mealHistory.getPublic_id().toString());
         } catch (Exception e) {
             log.error("generateFoodBoard: {}", e.getMessage());
             throw new GenerateMealBoardException("generateFoodBoard: " + e.getMessage());
         }
-
     }
 
     @GetMapping(value = "/getMealStarterPack", produces = MediaType.APPLICATION_JSON_VALUE)
