@@ -26,4 +26,5 @@ public interface IMealService {
     Page<MealProjection> findAllByUserIdAndMealType(Long userId, String mealType, int page, int size);
     MealDTO getMealDetailsByMealAndUserId(Long id, Long userId);
     Page<MealProjection> findAllByNameAndUserId(String name, Long userId);
+    List<String> getMealNamesByHistoryAndUserId(String pageId, Long userId);
 }

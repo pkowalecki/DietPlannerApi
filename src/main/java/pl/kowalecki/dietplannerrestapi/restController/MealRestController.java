@@ -15,7 +15,6 @@ import pl.kowalecki.dietplannerrestapi.exception.MealsNotFoundException;
 import pl.kowalecki.dietplannerrestapi.model.DTO.FoodBoardPageDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.MealHistoryResponse;
 import pl.kowalecki.dietplannerrestapi.model.DTO.MealStarterPackDTO;
-import pl.kowalecki.dietplannerrestapi.model.DTO.ShoppingList;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.*;
 import pl.kowalecki.dietplannerrestapi.model.MealHistory;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientsToBuy;
@@ -98,16 +97,15 @@ public class MealRestController {
     }
 
     @PostMapping("/getShoppingListData")
-    public ResponseEntity<ShoppingList> generateShoppingList(@RequestHeader("X-User-Id") String userId, @RequestBody String pageId){
-        MealHistory mealHistory = mealHistoryService.findMealHistoryByUUID(UUID.fromString(pageId), Long.valueOf(userId));
+    public ResponseEntity<List<IngredientsToBuy> > generateShoppingList(@RequestHeader("X-User-Id") String userId, @RequestBody String pageId){
+        MealHistoryProjection mealHistory = mealHistoryService.findMealHistoryByUUID(UUID.fromString(pageId), Long.valueOf(userId));
         List<Long> mealIds = Arrays.stream(mealHistory.getMealsIds().split(","))
                 .map(Long::valueOf)
                 .collect(Collectors.toList());
         List<IngredientsToBuy> ingredientToBuyDTOList =
                 mealService.getMealIngredientsFinalList(mealIds, mealHistory.getMultiplier());
-        ShoppingList shoppingList = new ShoppingList(mealIds, ingredientToBuyDTOList);
 
-        return ResponseEntity.ok(shoppingList);
+        return ResponseEntity.ok(ingredientToBuyDTOList);
     }
 
     @PostMapping("/generateFoodBoard")
@@ -137,10 +135,10 @@ public class MealRestController {
     }
 
     @PostMapping(value = "/getMealNamesById")
-    public ResponseEntity<List<String>> getMealNamesById(@RequestBody List<Long> mealIds) {
+    public ResponseEntity<List<String>> getMealNamesById(@RequestHeader("X-User-Id") String userId, @RequestBody String pageId) {
         try {
-            List<String> mealNames = mealService.getMealNamesByIdList(mealIds);
-            return ResponseEntity.ok().body(mealNames);
+            List<String> mealNames = mealService.getMealNamesByHistoryAndUserId(pageId, Long.valueOf(userId));
+            return ResponseEntity.ok(mealNames);
         } catch (Exception e) {
             log.error("getMealNamesById: {}", e.getMessage());
             throw new MealsNotFoundException("mealsNotFound");
@@ -148,11 +146,11 @@ public class MealRestController {
     }
 
     @GetMapping(value = "/getMealHistory")
-    public ResponseEntity<List<MealHistoryDTO>> getMealHistory(@RequestHeader("X-User-Id") String userId, HttpServletRequest request) {
+    public ResponseEntity<List<MealHistoryProjection>> getMealHistory(@RequestHeader("X-User-Id") String userId, HttpServletRequest request) {
         if (userId == null || userId.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        List<MealHistoryDTO> mealHistoryList = mealHistoryService.findMealHistoriesByUserId(Long.valueOf(userId));
+        List<MealHistoryProjection> mealHistoryList = mealHistoryService.findMealHistoriesByUserId(Long.valueOf(userId));
         return ResponseEntity.ok(mealHistoryList);
     }
 
@@ -161,7 +159,7 @@ public class MealRestController {
         if (userId == null || userId.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        MealHistory mealHistory = mealHistoryService.findMealHistoryByUUID(UUID.fromString(id), Long.valueOf(userId));
+        MealHistoryProjection mealHistory = mealHistoryService.findMealHistoryByUUID(UUID.fromString(id), Long.valueOf(userId));
 
         String ids = mealHistory.getMealsIds();
         List<Long> mealIds = Arrays.stream(ids.split(","))
