@@ -185,7 +185,7 @@ public class MealServiceImpl implements IMealService {
     public List<String> getMealNamesByIdList(List<Long> mealIds) {
         List<String> mealNames = new ArrayList<>();
         for (Long mealId : mealIds) {
-            if (mealId == 0) {
+            if (mealId == null || mealId == 0 || mealId == -1) {
                 mealNames.add("-");
                 continue;
             }

@@ -146,21 +146,14 @@ public class MealRestController {
     }
 
     @GetMapping(value = "/getMealHistory")
-    public ResponseEntity<List<MealHistoryProjection>> getMealHistory(@RequestHeader("X-User-Id") String userId, HttpServletRequest request) {
-        if (userId == null || userId.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    public ResponseEntity<List<MealHistoryProjection>> getMealHistory(@RequestHeader("X-User-Id") String userId) {
         List<MealHistoryProjection> mealHistoryList = mealHistoryService.findMealHistoriesByUserId(Long.valueOf(userId));
         return ResponseEntity.ok(mealHistoryList);
     }
 
-    @GetMapping(value = "/getMealHistoryById")
-    public ResponseEntity<MealHistoryResponse> getMealHistory(@RequestHeader("X-User-Id") String userId, @RequestParam("meal") String id, HttpServletRequest request) {
-        if (userId == null || userId.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    @PostMapping(value = "/getMealHistoryById")
+    public ResponseEntity<MealHistoryResponse> getMealHistory(@RequestHeader("X-User-Id") String userId, @RequestBody String id) {
         MealHistoryProjection mealHistory = mealHistoryService.findMealHistoryByUUID(UUID.fromString(id), Long.valueOf(userId));
-
         String ids = mealHistory.getMealsIds();
         List<Long> mealIds = Arrays.stream(ids.split(","))
                 .map(Long::parseLong)
@@ -171,6 +164,7 @@ public class MealRestController {
                 .multiplier(mealHistory.getMultiplier())
                 .mealNames(mealServiceImpl.getMealNamesByIdList(mealIds))
                 .ingredientsToBuy(ingredientToBuyDTOList)
+                .documentId(mealHistory.getPublic_id().toString())
                 .build();
         return ResponseEntity.ok(mealHistoryResponse);
     }

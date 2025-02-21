@@ -16,4 +16,5 @@ public class MealHistoryResponse {
     List<String> mealNames;
     Double multiplier;
     List<IngredientsToBuy> ingredientsToBuy;
+    String documentId;
 }
