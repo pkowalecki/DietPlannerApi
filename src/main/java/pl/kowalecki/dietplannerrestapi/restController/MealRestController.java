@@ -96,14 +96,21 @@ public class MealRestController {
         }
     }
 
-    @PostMapping("/generateFoodBoard")
-    public ResponseEntity<List<IngredientsToBuy>> generateFoodBoard(@RequestHeader("X-User-Id") String userId, @RequestBody FoodBoardPageDTO foodBoardPageDTO, HttpServletRequest request) {
-        try {
-            if (userId == null || userId.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-            List<IngredientsToBuy> ingredientToBuyDTOList = mealService.getMealIngredientsFinalList(foodBoardPageDTO.getMealIds(), foodBoardPageDTO.getMultiplier());
+    @PostMapping("/getShoppingListData")
+    public ResponseEntity<List<IngredientsToBuy> > generateShoppingList(@RequestHeader("X-User-Id") String userId, @RequestBody String pageId){
+        MealHistoryProjection mealHistory = mealHistoryService.findMealHistoryByUUID(UUID.fromString(pageId), Long.valueOf(userId));
+        List<Long> mealIds = Arrays.stream(mealHistory.getMealsIds().split(","))
+                .map(Long::valueOf)
+                .collect(Collectors.toList());
+        List<IngredientsToBuy> ingredientToBuyDTOList =
+                mealService.getMealIngredientsFinalList(mealIds, mealHistory.getMultiplier());
 
+        return ResponseEntity.ok(ingredientToBuyDTOList);
+    }
+
+    @PostMapping("/generateFoodBoard")
+    public ResponseEntity<String> generateFoodBoard(@RequestHeader("X-User-Id") String userId, @RequestBody FoodBoardPageDTO foodBoardPageDTO, HttpServletRequest request) {
+        try {
             MealHistory mealHistory = MealHistory.builder()
                     .userId(Long.valueOf(userId))
                     .public_id(UUID.randomUUID())
@@ -113,12 +120,11 @@ public class MealRestController {
                     .build();
             mealHistoryService.saveMealHistory(mealHistory);
 
-            return ResponseEntity.ok(ingredientToBuyDTOList);
+            return ResponseEntity.ok(mealHistory.getPublic_id().toString());
         } catch (Exception e) {
             log.error("generateFoodBoard: {}", e.getMessage());
             throw new GenerateMealBoardException("generateFoodBoard: " + e.getMessage());
         }
-
     }
 
     @GetMapping(value = "/getMealStarterPack", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -129,10 +135,10 @@ public class MealRestController {
     }
 
     @PostMapping(value = "/getMealNamesById")
-    public ResponseEntity<List<String>> getMealNamesById(@RequestBody List<Long> mealIds) {
+    public ResponseEntity<List<String>> getMealNamesById(@RequestHeader("X-User-Id") String userId, @RequestBody String pageId) {
         try {
-            List<String> mealNames = mealService.getMealNamesByIdList(mealIds);
-            return ResponseEntity.ok().body(mealNames);
+            List<String> mealNames = mealService.getMealNamesByHistoryAndUserId(pageId, Long.valueOf(userId));
+            return ResponseEntity.ok(mealNames);
         } catch (Exception e) {
             log.error("getMealNamesById: {}", e.getMessage());
             throw new MealsNotFoundException("mealsNotFound");
@@ -140,21 +146,14 @@ public class MealRestController {
     }
 
     @GetMapping(value = "/getMealHistory")
-    public ResponseEntity<List<MealHistoryDTO>> getMealHistory(@RequestHeader("X-User-Id") String userId, HttpServletRequest request) {
-        if (userId == null || userId.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        List<MealHistoryDTO> mealHistoryList = mealHistoryService.findMealHistoriesByUserId(Long.valueOf(userId));
+    public ResponseEntity<List<MealHistoryProjection>> getMealHistory(@RequestHeader("X-User-Id") String userId) {
+        List<MealHistoryProjection> mealHistoryList = mealHistoryService.findMealHistoriesByUserId(Long.valueOf(userId));
         return ResponseEntity.ok(mealHistoryList);
     }
 
-    @GetMapping(value = "/getMealHistoryById")
-    public ResponseEntity<MealHistoryResponse> getMealHistory(@RequestHeader("X-User-Id") String userId, @RequestParam("meal") String id, HttpServletRequest request) {
-        if (userId == null || userId.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        MealHistory mealHistory = mealHistoryService.findMealHistoryByUUID(UUID.fromString(id), Long.valueOf(userId));
-
+    @PostMapping(value = "/getMealHistoryById")
+    public ResponseEntity<MealHistoryResponse> getMealHistory(@RequestHeader("X-User-Id") String userId, @RequestBody String id) {
+        MealHistoryProjection mealHistory = mealHistoryService.findMealHistoryByUUID(UUID.fromString(id), Long.valueOf(userId));
         String ids = mealHistory.getMealsIds();
         List<Long> mealIds = Arrays.stream(ids.split(","))
                 .map(Long::parseLong)
@@ -165,6 +164,7 @@ public class MealRestController {
                 .multiplier(mealHistory.getMultiplier())
                 .mealNames(mealServiceImpl.getMealNamesByIdList(mealIds))
                 .ingredientsToBuy(ingredientToBuyDTOList)
+                .documentId(mealHistory.getPublic_id().toString())
                 .build();
         return ResponseEntity.ok(mealHistoryResponse);
     }

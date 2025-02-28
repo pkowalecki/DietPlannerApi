@@ -1,13 +1,13 @@
 package pl.kowalecki.dietplannerrestapi.services;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pl.kowalecki.dietplannerrestapi.model.DTO.meal.MealHistoryDTO;
+import pl.kowalecki.dietplannerrestapi.model.DTO.meal.MealHistoryProjection;
 import pl.kowalecki.dietplannerrestapi.model.MealHistory;
 import pl.kowalecki.dietplannerrestapi.repository.MealHistoryRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,28 +25,17 @@ public class MealHistoryServiceImpl implements IMealHistoryService {
     }
 
     @Override
-    public List<MealHistoryDTO> findMealHistoriesByUserId(Long userId) {
-        List<MealHistory> mealHistory = mealHistoryRepository.findAllByUserId(userId);
-        if (mealHistory.isEmpty()) {
-            return new ArrayList<>();
-        } else {
-            List<MealHistoryDTO> mealHistoryDTO = new ArrayList<>();
-            for (MealHistory historicalMeal : mealHistory) {
-                mealHistoryDTO.add(
-                        MealHistoryDTO.builder()
-                                .public_id(historicalMeal.getPublic_id())
-                                .userId(historicalMeal.getUserId())
-                                .mealsIds(historicalMeal.getMealsIds())
-                                .created(historicalMeal.getCreated())
-                                .multiplier(historicalMeal.getMultiplier())
-                                .build());
-            }
-            return mealHistoryDTO;
-        }
+    public List<MealHistoryProjection> findMealHistoriesByUserId(Long userId) {
+        return  mealHistoryRepository.findAllByUserId(userId).orElseThrow(
+                () -> new EntityNotFoundException("Meal history not found!")
+        );
     }
 
     @Override
-    public MealHistory findMealHistoryByUUID(UUID id, Long userId) {
-        return mealHistoryRepository.findMealHistoryByPublicIdAndUserId(id, userId);
+    public MealHistoryProjection findMealHistoryByUUID(UUID id, Long userId) {
+        return mealHistoryRepository.findMealHistoryByPublicIdAndUserId(id, userId).orElseThrow(
+                () -> new EntityNotFoundException("Meal history not found!")
+        );
     }
+
 }

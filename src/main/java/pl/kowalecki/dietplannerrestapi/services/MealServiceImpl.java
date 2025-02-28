@@ -38,6 +38,7 @@ public class MealServiceImpl implements IMealService {
     private final IngredientNamesRepository ingredientNamesRepository;
     private final IngredientNameMapper ingredientNameMapper;
     private final MealMapper mealMapper;
+    private final IMealHistoryService mealHistoryService;
 
     @Override
     public List<Meal> getAllMeals() {
@@ -213,7 +214,7 @@ public class MealServiceImpl implements IMealService {
     public List<String> getMealNamesByIdList(List<Long> mealIds) {
         List<String> mealNames = new ArrayList<>();
         for (Long mealId : mealIds) {
-            if (mealId == 0) {
+            if (mealId == null || mealId == 0 || mealId == -1) {
                 mealNames.add("-");
                 continue;
             }
@@ -283,5 +284,17 @@ public class MealServiceImpl implements IMealService {
         Pageable pageable = PageRequest.of(0, 10);
         return mealRepository.findMealByNameContainingIgnoreCaseAndUserId(name, userId, pageable);
 
+    }
+
+    @Override
+    public List<String> getMealNamesByHistoryAndUserId(String pageId, Long userId) {
+        MealHistoryProjection mealHistoryDTO = mealHistoryService.findMealHistoryByUUID(UUID.fromString(pageId), userId);
+        if (mealHistoryDTO != null){
+            List<Long> mealIds = Arrays.stream(mealHistoryDTO.getMealsIds().split(","))
+                    .map(Long::valueOf)
+                    .collect(Collectors.toList());
+            return getMealNamesByIdList(mealIds);
+        }
+        return Collections.emptyList();
     }
 }
