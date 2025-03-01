@@ -64,28 +64,12 @@ public class Meal implements Serializable {
     @DecimalMax(value = "1000.0", inclusive = true, message = "Value should be less than or equal to 1000")
     private Double portions;
 
+    private boolean isPublic;
+
     @PrePersist
     protected void onCreate() {
         additionDate = LocalDateTime.now();
         isDeleted = false;
-    }
-
-    @Override
-    public String toString() {
-        return "Meal{" +
-                "mealId=" + mealId +
-                ", additionDate=" + additionDate +
-                ", editDate=" + editDate +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", recipe='" + recipe + '\'' +
-                ", ingredients=" + ingredients +
-                ", notes='" + notes + '\'' +
-                ", mealTypes=" + mealTypes +
-                ", isDeleted=" + isDeleted +
-                ", userId=" + userId +
-                ", portions=" + portions +
-                '}';
     }
 
 }
