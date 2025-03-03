@@ -23,6 +23,5 @@ public class MealDTO {
     private String notes;
     private List<MealTypeDTO> mealTypes;
     private Double portions;
-    private boolean isDeleted;
-    private boolean isPublic;
+    private boolean mealPublic;
 }

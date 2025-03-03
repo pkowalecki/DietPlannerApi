@@ -1,4 +1,4 @@
-package pl.kowalecki.dietplannerrestapi.services;
+package pl.kowalecki.dietplannerrestapi.services.meal.history;
 
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.MealHistoryProjection;
 import pl.kowalecki.dietplannerrestapi.model.MealHistory;

@@ -17,4 +17,5 @@ public class AddMealRequestDTO {
     private List<IngredientDTO> ingredients;
     private List<Integer> mealTypes;
     private Double portions;
+    boolean mealPublic;
 }

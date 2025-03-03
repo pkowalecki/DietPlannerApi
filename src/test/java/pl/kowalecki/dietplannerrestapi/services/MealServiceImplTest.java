@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageImpl;
 import pl.kowalecki.dietplannerrestapi.model.projection.MealProjection;
 import pl.kowalecki.dietplannerrestapi.repository.MealRepository;
+import pl.kowalecki.dietplannerrestapi.services.meal.MealServiceImpl;
 
 import java.util.List;
 

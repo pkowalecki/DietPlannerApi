@@ -1,4 +1,4 @@
-package pl.kowalecki.dietplannerrestapi.services;
+package pl.kowalecki.dietplannerrestapi.services.meal;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -24,6 +24,7 @@ import pl.kowalecki.dietplannerrestapi.model.projection.MealProjection;
 import pl.kowalecki.dietplannerrestapi.repository.IngredientNamesRepository;
 import pl.kowalecki.dietplannerrestapi.repository.MealRepository;
 import pl.kowalecki.dietplannerrestapi.repository.MealViewRepository;
+import pl.kowalecki.dietplannerrestapi.services.meal.history.IMealHistoryService;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -43,12 +44,6 @@ public class MealServiceImpl implements IMealService {
     @Override
     public List<Meal> getAllMeals() {
         return mealRepository.findAll();
-    }
-
-    @Override
-    public List<MealView> getAllMealsByUserId(Long userId) {
-        List<MealView> mealNames = mealViewRepository.findAllByUserId(userId);
-        return mealNames;
     }
 
     @Override
@@ -114,6 +109,7 @@ public class MealServiceImpl implements IMealService {
         meal.setPortions(mealRequest.getPortions());
         updateIngredients(meal, mealRequest.getIngredients());
         updateMealTypes(meal, mealRequest.getMealTypes());
+        meal.setMealPublic(mealRequest.isMealPublic());
     }
 
     private void updateMealTypes(Meal meal, List<Integer> mealTypesRequest) {
@@ -280,9 +276,9 @@ public class MealServiceImpl implements IMealService {
     }
 
     @Override
-    public Page<MealProjection> findAllByNameAndUserId(String name, Long userId) {
+    public Page<MealProjection> findAllByNameAndUserId(String name) {
         Pageable pageable = PageRequest.of(0, 10);
-        return mealRepository.findMealByNameContainingIgnoreCaseAndUserId(name, userId, pageable);
+        return mealRepository.findMealByNameContainingIgnoreCase(name, pageable);
 
     }
 
@@ -296,5 +292,11 @@ public class MealServiceImpl implements IMealService {
             return getMealNamesByIdList(mealIds);
         }
         return Collections.emptyList();
+    }
+
+    @Override
+    public Page<MealProjection> findAllByPublic(boolean isPublic, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return mealRepository.findAllByMealPublic(true, pageable);
     }
 }
