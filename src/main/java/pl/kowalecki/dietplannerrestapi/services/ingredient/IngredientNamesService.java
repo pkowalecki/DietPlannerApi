@@ -1,4 +1,4 @@
-package pl.kowalecki.dietplannerrestapi.services;
+package pl.kowalecki.dietplannerrestapi.services.ingredient;
 
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientNameDTO;
 

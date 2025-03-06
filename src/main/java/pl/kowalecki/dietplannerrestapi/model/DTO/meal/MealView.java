@@ -18,4 +18,5 @@ public class MealView {
     private String name;
     private String mealTypes;
     private Long userId;
+    private boolean mealPublic;
 }

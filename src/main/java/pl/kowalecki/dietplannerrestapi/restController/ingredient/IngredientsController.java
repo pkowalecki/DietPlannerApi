@@ -1,4 +1,4 @@
-package pl.kowalecki.dietplannerrestapi.restController;
+package pl.kowalecki.dietplannerrestapi.restController.ingredient;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientNameDTO;
 
-import pl.kowalecki.dietplannerrestapi.services.IngredientNamesService;
+import pl.kowalecki.dietplannerrestapi.services.ingredient.IngredientNamesService;
 
 import java.util.List;
 

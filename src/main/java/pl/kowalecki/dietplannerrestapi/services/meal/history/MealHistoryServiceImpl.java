@@ -1,4 +1,4 @@
-package pl.kowalecki.dietplannerrestapi.services;
+package pl.kowalecki.dietplannerrestapi.services.meal.history;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;

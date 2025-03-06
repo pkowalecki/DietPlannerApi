@@ -1,4 +1,4 @@
-package pl.kowalecki.dietplannerrestapi.services;
+package pl.kowalecki.dietplannerrestapi.services.ingredient;
 
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;

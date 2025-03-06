@@ -1,4 +1,4 @@
-package pl.kowalecki.dietplannerrestapi.restController;
+package pl.kowalecki.dietplannerrestapi.restController.meal;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,72 +19,52 @@ import pl.kowalecki.dietplannerrestapi.model.DTO.meal.*;
 import pl.kowalecki.dietplannerrestapi.model.MealHistory;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientsToBuy;
 import pl.kowalecki.dietplannerrestapi.model.projection.MealProjection;
-import pl.kowalecki.dietplannerrestapi.services.IMealHistoryService;
-import pl.kowalecki.dietplannerrestapi.services.IMealService;
-import pl.kowalecki.dietplannerrestapi.services.MealServiceImpl;
+import pl.kowalecki.dietplannerrestapi.services.meal.history.IMealHistoryService;
+import pl.kowalecki.dietplannerrestapi.services.meal.IMealService;
+import pl.kowalecki.dietplannerrestapi.services.meal.MealServiceImpl;
+import pl.kowalecki.dietplannerrestapi.services.mealView.IMealViewService;
 
 
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@RequestMapping("/meal")
+@RequestMapping(value = "/meal")
 @RestController
 @AllArgsConstructor
 @Slf4j
-public class MealRestController {
+public class MealController {
 
     private final IMealService mealService;
+    private final IMealViewService mealViewService;
     private final IMealHistoryService mealHistoryService;
     private final MealServiceImpl mealServiceImpl;
 
-    @GetMapping("/allMeal")
-    public ResponseEntity<List<MealView>> getListMeal(@RequestHeader("X-User-Id") String userId) {
-        if (userId == null || userId.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        List<MealView> mealList = mealService.getAllMealsByUserId(Long.valueOf(userId));
+    @GetMapping("/getAllUserMeals")
+    public ResponseEntity<List<MealView>> getAllUserMeals(@RequestHeader("X-User-Id") String userId) {
+        List<MealView> mealList = mealViewService.getAllMealsByUserId(Long.valueOf(userId));
         return ResponseEntity.status(HttpStatus.OK).body(mealList);
     }
 
-    @GetMapping("/getMealsData")
+    @GetMapping("/getMeals")
     public ResponseEntity<Page<MealProjection>> getMeals(
             @RequestHeader("X-User-Id") String userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "all") String mealType) {
-
-        if (userId == null || userId.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        Page<MealProjection> meals;
-
-        if ("all".equalsIgnoreCase(mealType)) {
-            meals = mealService.findAllByUserId(Long.valueOf(userId), page, size);
-        } else {
-            meals = mealService.findAllByUserIdAndMealType(Long.valueOf(userId), mealType, page, size);
-        }
-
-        return ResponseEntity.ok(meals);
+        return ResponseEntity.ok(mealService.getMeals(userId, page, size, mealType));
     }
 
-    //FIXME nie usuwamy, a ukrywamy ustawiając flagę isDeleted = true;
-    @GetMapping(value = "/deleteMeal/{id}")
-    public ResponseEntity<?> deleteMealById(@PathVariable Long id) {
-        mealService.deleteMealById(id);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
+//    //FIXME normalnie usuwamy :v;
+//    @GetMapping(value = "/deleteMeal/{id}")
+//    public ResponseEntity<?> deleteMealById(@PathVariable Long id) {
+//        mealService.deleteMealById(id);
+//        return new ResponseEntity<>(HttpStatus.OK);
+//    }
 
     @PostMapping("/addOrUpdateMeal")
-    public ResponseEntity<Void> addMeal
-            (@RequestBody @Valid AddMealRequestDTO meal,
-             @RequestHeader("X-User-Id") String userId) {
+    public ResponseEntity<Void> addMeal(@RequestHeader("X-User-Id") String userId, @RequestBody @Valid AddMealRequestDTO meal) {
         try {
-            if (userId == null || userId.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
             mealService.addOrUpdateMeal(Long.valueOf(userId), meal);
             return ResponseEntity.ok().build();
         } catch (EntityNotFoundException e) {
@@ -172,7 +152,7 @@ public class MealRestController {
     @GetMapping(value = "/getMealDetails/{id}")
     public ResponseEntity<MealDTO> getMealDetails(@RequestHeader("X-User-Id") String userId,
                                                               @PathVariable Long id){
-            return ResponseEntity.ok(mealService.getMealDetailsByMealAndUserId(id, Long.valueOf(userId)));
+            return ResponseEntity.ok(mealService.getMealDetailsByMealId(id, Long.valueOf(userId)));
     }
 
     @GetMapping("/searchMealsByName")
@@ -180,8 +160,7 @@ public class MealRestController {
             @RequestHeader("X-User-Id") String userId,
             @RequestParam("query") String query) {
 
-        Page<MealProjection> meals = mealService.findAllByNameAndUserId(query, Long.valueOf(userId));
-        return ResponseEntity.ok(meals.getContent());
+        return ResponseEntity.ok(mealService.findMealsByNameAndUserIdOrPublic(Long.valueOf(userId), query));
     }
 
 }

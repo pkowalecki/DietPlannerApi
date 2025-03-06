@@ -1,4 +1,4 @@
-package pl.kowalecki.dietplannerrestapi.services;
+package pl.kowalecki.dietplannerrestapi.services.meal;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import pl.kowalecki.dietplannerrestapi.IngredientsListHelper;
 import pl.kowalecki.dietplannerrestapi.exception.MealsNotFoundException;
@@ -24,6 +25,7 @@ import pl.kowalecki.dietplannerrestapi.model.projection.MealProjection;
 import pl.kowalecki.dietplannerrestapi.repository.IngredientNamesRepository;
 import pl.kowalecki.dietplannerrestapi.repository.MealRepository;
 import pl.kowalecki.dietplannerrestapi.repository.MealViewRepository;
+import pl.kowalecki.dietplannerrestapi.services.meal.history.IMealHistoryService;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -46,36 +48,9 @@ public class MealServiceImpl implements IMealService {
     }
 
     @Override
-    public List<MealView> getAllMealsByUserId(Long userId) {
-        List<MealView> mealNames = mealViewRepository.findAllByUserId(userId);
-        return mealNames;
-    }
-
-    @Override
     public Meal getMealById(Long id) {
         return mealRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Meal not found!"));
-    }
-
-    @Override
-    public Page<MealProjection> findAllByUserIdAndMealType(Long userId, String mealType, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        try {
-            if(mealType.equals("private")){
-                return mealRepository.findAllByUserId(userId, pageable);
-            }
-            MealType type = MealType.valueOf(mealType.toUpperCase());
-            return mealRepository.findAllByUserIdAndMealTypes(userId, type, pageable);
-        } catch (IllegalArgumentException e) {
-            return Page.empty(pageable);
-        }
-    }
-
-
-    @Override
-    public Page<MealProjection> findAllByUserId(Long userId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return mealRepository.findAllByUserId(userId, pageable);
     }
 
 
@@ -94,11 +69,11 @@ public class MealServiceImpl implements IMealService {
 
         Long mealId = mealRequest.getMealId();
         Meal meal;
-        if (mealId!=null && mealId!=-1){
+        if (mealId != null && mealId != -1) {
             meal = mealRepository.findMealByMealIdAndUserId(mealId, userId)
                     .orElseThrow(() -> new EntityNotFoundException("Meal not found or access denied"));
             meal.setEditDate(LocalDateTime.now());
-        }else{
+        } else {
             meal = new Meal();
             meal.setUserId(userId);
         }
@@ -114,12 +89,13 @@ public class MealServiceImpl implements IMealService {
         meal.setPortions(mealRequest.getPortions());
         updateIngredients(meal, mealRequest.getIngredients());
         updateMealTypes(meal, mealRequest.getMealTypes());
+        meal.setMealPublic(mealRequest.isMealPublic());
     }
 
     private void updateMealTypes(Meal meal, List<Integer> mealTypesRequest) {
-        if(meal.getMealId() == null || meal.getMealId() == -1){
+        if (meal.getMealId() == null || meal.getMealId() == -1) {
             meal.setMealTypes(mapMealTypes(mealTypesRequest));
-        }else{
+        } else {
             meal.getMealTypes().clear();
             meal.setMealTypes(mapMealTypes(mealTypesRequest));
         }
@@ -274,27 +250,80 @@ public class MealServiceImpl implements IMealService {
     }
 
     @Override
-    public MealDTO getMealDetailsByMealAndUserId(Long id, Long userId) {
-        Meal meal = mealRepository.getMealByIdAndUserId(id, userId).orElseThrow(()-> new MealsNotFoundException("Meal not found!"));
-        return mealMapper.mealToMealDTO(meal);
+    public MealDTO getMealDetailsByMealId(Long id, Long userId) {
+        Meal meal = mealRepository.getMealById(id)
+                .orElseThrow(() -> new MealsNotFoundException("Nie znaleziono przepisu."));
+
+        if (!meal.isMealPublic()){
+            if(!meal.getUserId().equals(userId)){
+                throw new AccessDeniedException("Nie masz uprawnień do żądanego zasobu");
+            }
+        }
+
+        boolean canEdit = meal.getUserId().equals(userId);
+
+        return mealMapper.mealToMealDTO(meal, canEdit);
     }
 
     @Override
-    public Page<MealProjection> findAllByNameAndUserId(String name, Long userId) {
+    public Page<MealProjection> findAllByName(String name) {
         Pageable pageable = PageRequest.of(0, 10);
-        return mealRepository.findMealByNameContainingIgnoreCaseAndUserId(name, userId, pageable);
+        return mealRepository.findMealByNameContainingIgnoreCase(name, pageable);
 
     }
 
     @Override
     public List<String> getMealNamesByHistoryAndUserId(String pageId, Long userId) {
         MealHistoryProjection mealHistoryDTO = mealHistoryService.findMealHistoryByUUID(UUID.fromString(pageId), userId);
-        if (mealHistoryDTO != null){
+        if (mealHistoryDTO != null) {
             List<Long> mealIds = Arrays.stream(mealHistoryDTO.getMealsIds().split(","))
                     .map(Long::valueOf)
                     .collect(Collectors.toList());
             return getMealNamesByIdList(mealIds);
         }
         return Collections.emptyList();
+    }
+
+    @Override
+    public Page<MealProjection> findAllByPublic(boolean isPublic, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return mealRepository.findAllByMealPublic(true, pageable);
+    }
+
+
+    @Override
+    public Page<MealProjection> getMeals(String userId, int page, int size, String mealType) {
+        Page<MealProjection> meals;
+        if ("all".equalsIgnoreCase(mealType)) {
+            meals = findAllByUserIdOrPublic(Long.valueOf(userId), page, size);
+        } else if ("private".equalsIgnoreCase(mealType)) {
+            meals = findAllByUserId(Long.valueOf(userId), page, size);
+        } else {
+            meals = findAllByUserIdAndMealType(Long.valueOf(userId), mealType, page, size);
+        }
+        return meals;
+    }
+
+    private Page<MealProjection> findAllByUserIdOrPublic(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return mealRepository.findAllByUserIdOrMealPublic(userId, true, pageable);
+    }
+
+    private Page<MealProjection> findAllByUserId(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return mealRepository.findAllByUserId(userId, pageable);
+    }
+
+    private Page<MealProjection> findAllByUserIdAndMealType(Long userId, String mealType, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        MealType type = MealType.valueOf(mealType.toUpperCase());
+        return mealRepository.findAllByUserIdAndMealTypes(userId, type, pageable);
+    }
+
+    @Override
+    public List<MealProjection> findMealsByNameAndUserIdOrPublic(Long userId, String query) {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<MealProjection> meals = mealRepository.findAllByNameContainingIgnoreCaseAndUserIdOrNameContainingIgnoreCaseAndMealPublic(query, userId, query, true, pageable);
+        return meals.getContent();
     }
 }
