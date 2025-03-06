@@ -2,7 +2,7 @@ package pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import pl.kowalecki.dietplannerrestapi.exception.MeasurementTypeNotFoundException;
+import pl.kowalecki.dietplannerrestapi.exception.dataNotFoundException.MeasurementTypeNotFoundException;
 
 @Getter
 @AllArgsConstructor

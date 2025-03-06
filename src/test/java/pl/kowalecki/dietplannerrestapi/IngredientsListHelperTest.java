@@ -9,6 +9,7 @@ import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientAmount.Ingredi
 import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement.MeasurementType;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,7 +20,7 @@ class IngredientsListHelperTest {
         Meal meal = new Meal();
         IngredientName ingredientName1 = new IngredientName(0L, "Masło", "Marka", 0, 0, 0,0, 1L);
         IngredientName ingredientName2 = new IngredientName(1L, "Masło", "Marka", 0, 0, 0,0,1L);
-        IngredientName ingredientName3 = new IngredientName(2L, "Pomidor", "Marka", 0, 0, 0,0,1L);
+        IngredientName ingredientName3 = new IngredientName(2L,"Pomidor", "Marka", 0, 0, 0,0,1L);
 
         Ingredient ingredient1 =  new Ingredient(1L,3.8,IngredientUnit.GRAM,1.3,MeasurementType.LYZECZKA,
                 ingredientName1,

@@ -11,7 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.kowalecki.dietplannerrestapi.exception.GenerateMealBoardException;
-import pl.kowalecki.dietplannerrestapi.exception.MealsNotFoundException;
+import pl.kowalecki.dietplannerrestapi.exception.dataNotFoundException.MealsNotFoundException;
 import pl.kowalecki.dietplannerrestapi.model.DTO.FoodBoardPageDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.MealHistoryResponse;
 import pl.kowalecki.dietplannerrestapi.model.DTO.MealStarterPackDTO;

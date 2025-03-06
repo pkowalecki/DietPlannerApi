@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import pl.kowalecki.dietplannerrestapi.IngredientsListHelper;
-import pl.kowalecki.dietplannerrestapi.exception.MealsNotFoundException;
+import pl.kowalecki.dietplannerrestapi.exception.dataNotFoundException.MealsNotFoundException;
 import pl.kowalecki.dietplannerrestapi.mapper.IngredientNameMapper;
 import pl.kowalecki.dietplannerrestapi.mapper.MealMapper;
 import pl.kowalecki.dietplannerrestapi.model.DTO.MealStarterPackDTO;

@@ -7,5 +7,5 @@ import java.util.List;
 public interface IngredientNamesService {
 
     List<IngredientNameDTO> searchByName(String name);
-    void addIngredientName(Long userId, IngredientNameDTO newIngredientName);
+    void addOrEditIngredientDetails(Long userId, IngredientNameDTO newIngredientName);
 }
