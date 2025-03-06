@@ -5,5 +5,5 @@ public interface MealProjection {
     String getName();
     String getDescription();
     Long getUserId();
-    boolean mealPublic();
+    boolean getMealPublic();
 }

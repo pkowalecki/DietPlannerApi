@@ -24,17 +24,21 @@ public interface MealRepository extends JpaRepository<Meal, Long> {
 
     Page<MealProjection> findAllByUserId(Long userId, Pageable pageable);
 
-    @Query("SELECT m FROM Meal m WHERE m.userId = :userId AND :mealType MEMBER OF m.mealTypes")
-    Page<MealProjection> findAllByUserIdAndMealTypes(@Param("userId") Long userId, @Param("mealType") MealType mealType, Pageable pageable);
-
-
-    @Query("SELECT m FROM Meal m LEFT JOIN FETCH m.ingredients WHERE m.mealId = :id AND m.userId = :userId")
-    Optional<Meal> getMealByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
+    @Query("SELECT m FROM Meal m LEFT JOIN FETCH m.ingredients WHERE m.mealId = :id")
+    Optional<Meal> getMealById(@Param("id") Long id);
 
     Optional<Meal> findMealByMealIdAndUserId(Long mealId, Long userId);
 
     Page<MealProjection> findMealByNameContainingIgnoreCase(@Param("mealName") String mealName, Pageable pageable);
 
-
     Page<MealProjection> findAllByMealPublic(boolean mealPublic, Pageable pageable);
+
+    Page<MealProjection> findAllByUserIdOrMealPublic(Long userId, boolean mealPublic, Pageable pageable);
+
+    @Query("SELECT m FROM Meal m WHERE m.userId = :userId AND :mealType MEMBER OF m.mealTypes")
+    Page<MealProjection> findAllByUserIdAndMealTypes(@Param("userId") Long userId, @Param("mealType") MealType mealType, Pageable pageable);
+
+    Page<MealProjection> findAllByNameContainingIgnoreCaseAndUserIdOrNameContainingIgnoreCaseAndMealPublic(
+            String name1, Long userId, String name2, boolean mealPublic, Pageable pageable);
+
 }

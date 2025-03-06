@@ -4,7 +4,6 @@ import org.springframework.data.domain.Page;
 import pl.kowalecki.dietplannerrestapi.model.DTO.MealStarterPackDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.AddMealRequestDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.MealDTO;
-import pl.kowalecki.dietplannerrestapi.model.DTO.meal.MealView;
 import pl.kowalecki.dietplannerrestapi.model.Meal;
 import pl.kowalecki.dietplannerrestapi.model.ingredient.IngredientsToBuy;
 import pl.kowalecki.dietplannerrestapi.model.projection.MealProjection;
@@ -21,10 +20,11 @@ public interface IMealService {
     MealStarterPackDTO buildStarterPack();
     List<IngredientsToBuy> getMealIngredientsFinalList(List<Long> ids, Double multiplier);
     List<String> getMealNamesByIdList(List<Long> mealIds);
-    Page<MealProjection> findAllByUserId(Long userId, int page, int size);
     Page<MealProjection> findAllByPublic(boolean isPublic, int page, int size);
-    Page<MealProjection> findAllByUserIdAndMealType(Long userId, String mealType, int page, int size);
-    MealDTO getMealDetailsByMealAndUserId(Long id, Long userId);
+    MealDTO getMealDetailsByMealId(Long id, Long userId);
     Page<MealProjection> findAllByName(String name);
     List<String> getMealNamesByHistoryAndUserId(String pageId, Long userId);
+    Page<MealProjection> getMeals(String userId, int page, int size, String mealType);
+
+    List<MealProjection> findMealsByNameAndUserIdOrPublic(Long userId, String query);
 }

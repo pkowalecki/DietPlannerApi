@@ -24,4 +24,5 @@ public class MealDTO {
     private List<MealTypeDTO> mealTypes;
     private Double portions;
     private boolean mealPublic;
+    private boolean canEdit;
 }

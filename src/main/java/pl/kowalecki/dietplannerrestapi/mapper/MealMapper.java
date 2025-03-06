@@ -1,5 +1,6 @@
 package pl.kowalecki.dietplannerrestapi.mapper;
 
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.*;
@@ -14,7 +15,7 @@ import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement.Me
 public interface MealMapper {
 
     @Mapping(source = "ingredients", target = "ingredients")
-    MealDTO mealToMealDTO(Meal meal);
+    MealDTO mealToMealDTO(Meal meal, @Context boolean canEdit);
 
     @Mapping(source = "ingredientNameId.name", target = "name.ingredientName")
     @Mapping(source = "ingredientNameId.brand", target = "name.ingredientBrand")

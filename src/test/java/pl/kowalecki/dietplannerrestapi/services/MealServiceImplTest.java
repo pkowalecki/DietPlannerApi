@@ -29,9 +29,8 @@ class MealServiceImplTest {
     private MealRepository mealRepository;
 
     @Test
-    void shouldReturnMealsByNameAndUserId() {
+    void shouldReturnMealsByName() {
         String query = "Pizza";
-        Long userId = 3L;
         int page = 0;
         int size = 10;
 
@@ -39,10 +38,10 @@ class MealServiceImplTest {
         Pageable pageable = PageRequest.of(page, size);
         Page<MealProjection> pageResult = new PageImpl<>(mealProjections, pageable, mealProjections.size());
 
-        when(mealRepository.findMealByNameContainingIgnoreCaseAndUserId(query, userId, pageable))
+        when(mealRepository.findMealByNameContainingIgnoreCase(query, pageable))
                 .thenReturn(pageResult);
 
-        Page<MealProjection> result = mealService.findAllByNameAndUserId(query, userId);
+        Page<MealProjection> result = mealService.findAllByName(query);
         assertFalse(result.isEmpty());
         assertEquals(1, result.getTotalElements());
     }

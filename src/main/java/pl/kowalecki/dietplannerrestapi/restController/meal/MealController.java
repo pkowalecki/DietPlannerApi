@@ -46,22 +46,13 @@ public class MealController {
         return ResponseEntity.status(HttpStatus.OK).body(mealList);
     }
 
-    @GetMapping("/getMealsData")
+    @GetMapping("/getMeals")
     public ResponseEntity<Page<MealProjection>> getMeals(
             @RequestHeader("X-User-Id") String userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "all") String mealType) {
-
-        Page<MealProjection> meals;
-
-        if ("all".equalsIgnoreCase(mealType)) {
-            meals = mealService.findAllByPublic(true, page, size);
-        } else {
-            meals = mealService.findAllByUserIdAndMealType(Long.valueOf(userId), mealType, page, size);
-        }
-
-        return ResponseEntity.ok(meals);
+        return ResponseEntity.ok(mealService.getMeals(userId, page, size, mealType));
     }
 
 //    //FIXME normalnie usuwamy :v;
@@ -161,7 +152,7 @@ public class MealController {
     @GetMapping(value = "/getMealDetails/{id}")
     public ResponseEntity<MealDTO> getMealDetails(@RequestHeader("X-User-Id") String userId,
                                                               @PathVariable Long id){
-            return ResponseEntity.ok(mealService.getMealDetailsByMealAndUserId(id, Long.valueOf(userId)));
+            return ResponseEntity.ok(mealService.getMealDetailsByMealId(id, Long.valueOf(userId)));
     }
 
     @GetMapping("/searchMealsByName")
@@ -169,8 +160,7 @@ public class MealController {
             @RequestHeader("X-User-Id") String userId,
             @RequestParam("query") String query) {
 
-        Page<MealProjection> meals = mealService.findAllByName(query);
-        return ResponseEntity.ok(meals.getContent());
+        return ResponseEntity.ok(mealService.findMealsByNameAndUserIdOrPublic(Long.valueOf(userId), query));
     }
 
 }
