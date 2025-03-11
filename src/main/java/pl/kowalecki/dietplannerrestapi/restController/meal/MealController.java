@@ -40,9 +40,9 @@ public class MealController {
     private final IMealHistoryService mealHistoryService;
     private final MealServiceImpl mealServiceImpl;
 
-    @GetMapping("/getAllUserMeals")
+    @GetMapping("/getMealsToBoard")
     public ResponseEntity<List<MealView>> getAllUserMeals(@RequestHeader("X-User-Id") String userId) {
-        List<MealView> mealList = mealViewService.getAllMealsByUserId(Long.valueOf(userId));
+        List<MealView> mealList = mealViewService.getMealsToBoard(Long.valueOf(userId));
         return ResponseEntity.status(HttpStatus.OK).body(mealList);
     }
 

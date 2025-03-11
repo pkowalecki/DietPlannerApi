@@ -1,11 +1,9 @@
 package pl.kowalecki.dietplannerrestapi.services.ingredient;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import pl.kowalecki.dietplannerrestapi.exception.ObjectAlreadyExistsException;
 import pl.kowalecki.dietplannerrestapi.exception.dataNotFoundException.IngredientDetailsNotFoundException;
 import pl.kowalecki.dietplannerrestapi.mapper.IngredientNameMapper;
 import pl.kowalecki.dietplannerrestapi.model.DTO.meal.IngredientNameDTO;
@@ -14,6 +12,7 @@ import pl.kowalecki.dietplannerrestapi.repository.IngredientNamesRepository;
 import pl.kowalecki.dietplannerrestapi.utils.TextTools;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,47 +31,62 @@ public class IngredientNamesServiceImpl implements IngredientNamesService {
                 .collect(Collectors.toList());
     }
 
-    //fixme refactor me plx
+
     @Override
     public void addOrEditIngredientDetails(Long userId, IngredientNameDTO ingredientNameDTO) {
-        IngredientName ingredientName;
-        String ingredientDetailName = TextTools.allToLower(ingredientNameDTO.ingredientName());
-        String ingredientDetailBrand = TextTools.firstToUpper(ingredientNameDTO.ingredientBrand());
-        if ("-1".equals(ingredientNameDTO.publicId().toString())){
-            ingredientName = buildIngredientName(userId, ingredientNameDTO);
-        }else {
-            ingredientName = ingredientNamesRepository.findIngredientNameByPublicId(ingredientNameDTO.publicId())
-                    .orElseThrow(() -> new IngredientDetailsNotFoundException("Nie znaleziono składnika o podanej nazwie"));
+        String normalizedName = TextTools.allToLower(ingredientNameDTO.ingredientName());
+        String normalizedBrand = ingredientNameDTO.ingredientBrand() == null? "" : TextTools.firstToUpper(ingredientNameDTO.ingredientBrand());
 
-            ingredientName.setName(ingredientDetailName);
-            ingredientName.setBrand(ingredientDetailBrand);
-            ingredientName.setProtein(ingredientNameDTO.protein());
-            ingredientName.setCarbohydrates(ingredientNameDTO.carbohydrates());
-            ingredientName.setFat(ingredientNameDTO.fat());
-            ingredientName.setKcal(ingredientNameDTO.kcal());
-        }
-        IngredientName existingIngredient = ingredientNamesRepository
-                .findIngredientNameByNameContainingIgnoreCaseAndBrandContainingIgnoreCase(
-                        ingredientDetailName, ingredientDetailBrand);
-
-        if (existingIngredient != null
-                && ingredientName.getName().equals(existingIngredient.getName())
-                && ingredientName.getBrand().equals(existingIngredient.getBrand())) {
-            throw new ObjectAlreadyExistsException("Ingredient with the same name and brand already exists.");
-        }
-
+        IngredientName ingredientName = isNewIngredient(ingredientNameDTO, normalizedName, normalizedBrand)
+                ? createNewIngredient(userId, ingredientNameDTO, normalizedName, normalizedBrand)
+                : updateExistingIngredient(ingredientNameDTO, normalizedName, normalizedBrand);
+        
         ingredientNamesRepository.save(ingredientName);
     }
 
-    private IngredientName buildIngredientName(Long userId, IngredientNameDTO ingredientNameDTO) {
+    private IngredientName updateExistingIngredient(IngredientNameDTO dto,
+                                                    String normalizedName, String normalizedBrand) {
+        IngredientName ingredientName = ingredientNamesRepository
+                .findIngredientNameByPublicId(UUID.fromString(dto.publicId()))
+                .orElseThrow(() -> new IngredientDetailsNotFoundException("Nie znaleziono składnika o podanej nazwie"));
+
+        updateIngredientFields(ingredientName, dto, normalizedName, normalizedBrand);
+        return ingredientName;
+    }
+
+    private void updateIngredientFields(IngredientName ingredient, IngredientNameDTO dto,
+                                        String normalizedName, String normalizedBrand) {
+        ingredient.setName(normalizedName);
+        ingredient.setBrand(normalizedBrand);
+        ingredient.setProtein(dto.protein());
+        ingredient.setCarbohydrates(dto.carbohydrates());
+        ingredient.setFat(dto.fat());
+        ingredient.setKcal(dto.kcal());
+    }
+
+    private IngredientName createNewIngredient(Long userId, IngredientNameDTO dto,
+                                               String normalizedName, String normalizedBrand) {
         return IngredientName.builder()
-                .name(TextTools.allToLower(ingredientNameDTO.ingredientName()))
-                .brand(TextTools.firstToUpper(ingredientNameDTO.ingredientBrand()))
-                .protein(ingredientNameDTO.protein())
-                .carbohydrates(ingredientNameDTO.carbohydrates())
-                .fat(ingredientNameDTO.fat())
-                .kcal(ingredientNameDTO.kcal())
+                .name(normalizedName)
+                .brand(normalizedBrand)
+                .protein(dto.protein())
+                .carbohydrates(dto.carbohydrates())
+                .fat(dto.fat())
+                .kcal(dto.kcal())
                 .userId(userId)
                 .build();
+    }
+
+    private boolean isNewIngredient(IngredientNameDTO ingredientNameDTO, String normalizedName, String normalizedBrand) {
+        return "-1".equals(ingredientNameDTO.publicId()) && !checkIfDuplicated(normalizedName, normalizedBrand);
+    }
+
+    private boolean checkIfDuplicated(String name, String brand) {
+        IngredientName existingIngredient = ingredientNamesRepository
+                .findIngredientNameByNameContainingIgnoreCaseAndBrandContainingIgnoreCase(name, brand);
+
+        return existingIngredient != null &&
+                name.equals(existingIngredient.getName()) &&
+                brand.equals(existingIngredient.getBrand());
     }
 }
