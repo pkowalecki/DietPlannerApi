@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface IMealViewService {
 
-    List<MealView> getAllMealsByUserId(Long userId);
+    List<MealView> getMealsToBoard(Long userId);
 }

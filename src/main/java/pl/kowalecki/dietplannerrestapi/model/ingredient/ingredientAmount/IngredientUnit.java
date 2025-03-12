@@ -2,7 +2,7 @@ package pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientAmount;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import pl.kowalecki.dietplannerrestapi.exception.IngredientUnitNotFoundException;
+import pl.kowalecki.dietplannerrestapi.exception.dataNotFoundException.IngredientUnitNotFoundException;
 
 import java.util.ArrayList;
 import java.util.HashMap;

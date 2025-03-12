@@ -14,8 +14,8 @@ import pl.kowalecki.dietplannerrestapi.model.ingredient.ingredientMeasurement.Me
 @Mapper(componentModel = "spring")
 public interface MealMapper {
 
-    @Mapping(source = "ingredients", target = "ingredients")
-    MealDTO mealToMealDTO(Meal meal, @Context boolean canEdit);
+    @Mapping(target = "canEdit", expression = "java(canEdit)")
+    MealDTO mealToMealDTO(Meal meal, boolean canEdit);
 
     @Mapping(source = "ingredientNameId.name", target = "name.ingredientName")
     @Mapping(source = "ingredientNameId.brand", target = "name.ingredientBrand")

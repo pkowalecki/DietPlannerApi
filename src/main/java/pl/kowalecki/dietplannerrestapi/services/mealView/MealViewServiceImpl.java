@@ -14,7 +14,7 @@ public class MealViewServiceImpl implements IMealViewService {
     private final MealViewRepository mealViewRepository;
 
     @Override
-    public List<MealView> getAllMealsByUserId(Long userId) {
-        return mealViewRepository.findAllByUserId(userId);
+    public List<MealView> getMealsToBoard(Long userId) {
+        return mealViewRepository.findAllByUserIdOrMealPublic(userId, true);
     }
 }

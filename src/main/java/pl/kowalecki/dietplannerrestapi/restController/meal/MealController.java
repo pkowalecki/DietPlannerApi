@@ -11,7 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.kowalecki.dietplannerrestapi.exception.GenerateMealBoardException;
-import pl.kowalecki.dietplannerrestapi.exception.MealsNotFoundException;
+import pl.kowalecki.dietplannerrestapi.exception.dataNotFoundException.MealsNotFoundException;
 import pl.kowalecki.dietplannerrestapi.model.DTO.FoodBoardPageDTO;
 import pl.kowalecki.dietplannerrestapi.model.DTO.MealHistoryResponse;
 import pl.kowalecki.dietplannerrestapi.model.DTO.MealStarterPackDTO;
@@ -40,9 +40,9 @@ public class MealController {
     private final IMealHistoryService mealHistoryService;
     private final MealServiceImpl mealServiceImpl;
 
-    @GetMapping("/getAllUserMeals")
+    @GetMapping("/getMealsToBoard")
     public ResponseEntity<List<MealView>> getAllUserMeals(@RequestHeader("X-User-Id") String userId) {
-        List<MealView> mealList = mealViewService.getAllMealsByUserId(Long.valueOf(userId));
+        List<MealView> mealList = mealViewService.getMealsToBoard(Long.valueOf(userId));
         return ResponseEntity.status(HttpStatus.OK).body(mealList);
     }
 

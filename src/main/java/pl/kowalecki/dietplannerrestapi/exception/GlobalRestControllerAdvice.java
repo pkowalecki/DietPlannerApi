@@ -61,9 +61,9 @@ public class GlobalRestControllerAdvice {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         log.error("[{}] Exception at {}: {}", timestamp, request.getRequestURI(), ex.getMessage());
-
+        log.error(ex.getCause().toString());
         ErrorResponse response = new ErrorResponse(
-                ex.getMessage(),
+                details == null || details.isEmpty() ? ex.getMessage() : details,
                 ex.getClass().getSimpleName(),
                 status.value(),
                 "diet-planner-api",

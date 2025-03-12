@@ -3,8 +3,10 @@ package pl.kowalecki.dietplannerrestapi.model.ingredient;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import pl.kowalecki.dietplannerrestapi.model.DbEntity;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -14,9 +16,10 @@ import java.io.Serializable;
 @ToString
 @Entity
 @Table(name = "ingredients_name", indexes = {
-        @Index(name="idx_ingredient_name", columnList = "name")
+        @Index(name="idx_ingredient_name", columnList = "name"),
+        @Index(name="idx_ingredient_public_id", columnList = "public_id")
 })
-public class IngredientName implements Serializable {
+public class IngredientName extends DbEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,7 +31,7 @@ public class IngredientName implements Serializable {
     private String name;
 
     @Column(name = "brand")
-    @Size(min = 2, max = 254, message = "Name must be between 2 and 254 characters")
+    @Pattern(regexp = "^$|^.{2,254}$", message = "Name must be between 2 and 254 characters")
     private String brand;
 
     @Column(name = "protein")
@@ -53,5 +56,8 @@ public class IngredientName implements Serializable {
 
     @NotNull(message = "User cannot be null")
     private Long userId;
+
+
+
 
 }
