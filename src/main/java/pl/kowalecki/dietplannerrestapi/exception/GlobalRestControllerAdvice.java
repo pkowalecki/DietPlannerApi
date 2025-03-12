@@ -57,14 +57,13 @@ public class GlobalRestControllerAdvice {
         return handleException(ex, request, status, ex.getMessage());
     }
 
-    //Fixme bazodanowe exceptiony lecą do klienta
     private ResponseEntity<ErrorResponse> handleException(Exception ex, HttpServletRequest request, HttpStatus status, String details) {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         log.error("[{}] Exception at {}: {}", timestamp, request.getRequestURI(), ex.getMessage());
-
+        log.error(ex.getCause().toString());
         ErrorResponse response = new ErrorResponse(
-                ex.getMessage(),
+                details == null || details.isEmpty() ? ex.getMessage() : details,
                 ex.getClass().getSimpleName(),
                 status.value(),
                 "diet-planner-api",

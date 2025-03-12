@@ -35,7 +35,8 @@ public class IngredientNamesServiceImpl implements IngredientNamesService {
     @Override
     public void addOrEditIngredientDetails(Long userId, IngredientNameDTO ingredientNameDTO) {
         String normalizedName = TextTools.allToLower(ingredientNameDTO.ingredientName());
-        String normalizedBrand = ingredientNameDTO.ingredientBrand() == null? "" : TextTools.firstToUpper(ingredientNameDTO.ingredientBrand());
+        String normalizedBrand = ingredientNameDTO.ingredientBrand() == null
+                || ingredientNameDTO.ingredientBrand().isEmpty()? "" : TextTools.firstToUpper(ingredientNameDTO.ingredientBrand());
 
         IngredientName ingredientName = isNewIngredient(ingredientNameDTO, normalizedName, normalizedBrand)
                 ? createNewIngredient(userId, ingredientNameDTO, normalizedName, normalizedBrand)

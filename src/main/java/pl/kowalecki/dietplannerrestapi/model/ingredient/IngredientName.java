@@ -31,7 +31,7 @@ public class IngredientName extends DbEntity implements Serializable {
     private String name;
 
     @Column(name = "brand")
-    @Size(min = 2, max = 254, message = "Name must be between 2 and 254 characters")
+    @Pattern(regexp = "^$|^.{2,254}$", message = "Name must be between 2 and 254 characters")
     private String brand;
 
     @Column(name = "protein")
